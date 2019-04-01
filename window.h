@@ -1,5 +1,5 @@
 /*==================================================================================|
-|    Assignment:	Ultima 2.0 Phase 2
+|    Assignment:	Ultima 2.0 Phase 3
 |     File Name:	window.h
 |  Dependencies: 	none
 |       Authors: 	Drake Wood, James Giegerich

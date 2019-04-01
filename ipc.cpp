@@ -1,5 +1,5 @@
 /*==================================================================================|
-|   Assignment:		Ultima 2.0 Phase 2
+|   Assignment:		Ultima 2.0 Phase 3
 |    File Name:		ipc.cpp
 | Dependencies: 	ipc.h window.h queue.h scheduler.h semaphore.h
 |      Authors: 	Drake Wood, James Giegerich
