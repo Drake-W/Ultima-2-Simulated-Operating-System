@@ -32,6 +32,7 @@
 #include "scheduler.h"
 #include "semaphore.h"
 #include "window.h"
+#include "memory.h"
 
 using namespace std;
 semaphore sema_screen(1, (char *)"Screen Print");	// creates semaphores
@@ -40,8 +41,10 @@ semaphore sema_t2mail(1, (char *)"t2mail");
 semaphore sema_t3mail(1, (char *)"t3mail");	
 semaphore sema_t4mail(1, (char *)"t4mail");	
 semaphore sema_ptable(1, (char *)"ptable");	
+semaphore sema_memory(1, (char *)"memory");
 scheduler sched; //creates scheduler
 ipc IPC; // creates ipc
+mem_mgr Mem_Mgr(1,1); // creates mem manager - size, initial value - dont do anything right now
 
 //------------------------------------------------------------------------------
 //------------------------------MAIN--------------------------------------------

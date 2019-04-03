@@ -15,6 +15,10 @@
 *==================================================================================*/
 
 #include "memory.h"
+#include "semaphore.h"
+
+extern semaphore sema_memory;
+
 mem_mgr::mem_mgr(int size, char default_initial_value){// allocate 1024 unsigned chars and initialize the entire memory with . dots
 	
 	for (int i = 1; i < 9; i++){
@@ -50,10 +54,11 @@ void mem_mgr::create_node(int value){
 }
 
 int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
-	//this->status = 1;
+	sema_memory.down();
 	int count = 128;
 	if (size > Mem_Largest())
 	{
+		sema_memory.up();
 		return -1;
 	}
 	MemNode * temp = this->head;
@@ -79,11 +84,12 @@ int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 
 			}
 		}
 	}
+	sema_memory.up();
 	return 1;
 }
 
 int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, return -1 if errors occur
-
+sema_memory.down();
 	MemNode* temp = this->head;
 	
 	while(temp){
@@ -94,17 +100,19 @@ int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, retur
 			temp->status = 0;
 			temp->owner = "none";
 			temp->current_location = temp->base; //  need to add checking for linked nodes
+			sema_memory.up();
 			return 1;
 		}
 		else{
 			temp = temp->next;
 		}
 	}
+	sema_memory.up();
 return -1;
 }
 
 int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
-	
+	sema_memory.down();
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->handle == memory_handle){
@@ -112,17 +120,19 @@ int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from curr
 			ch = (char*)Mem_Core[temp->current_location];
 			
 			temp->current_location = temp->current_location - 1;
-			break;
+			sema_memory.up();
+			return 1;
 		}
 		else{
 			temp = temp->next;
 		}
 	}
+	sema_memory.up();
 	return -1;
 }
 
 int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the current location in memory, return a -1 if at end of bounds. 
-
+sema_memory.down();
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->handle == memory_handle){
@@ -130,24 +140,31 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 			Mem_Core[temp->current_location] = ch;
 			
 			temp->current_location = temp->current_location + 1;
-			break;
+			sema_memory.up();
+			return 1;
 		}
 		else{
 			temp = temp->next;
 		}
 	}
+	sema_memory.up();
 	return -1;
 } 
 	// overloaded multi-byte read and write
 int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
+	sema_memory.down();
+	sema_memory.up();
 	return -1;
 }
 
 int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
+	sema_memory.down();
+	sema_memory.up();
 	return -1;
 }
 	
 int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
+	sema_memory.down();
 int counter = 0;
 	MemNode* temp = this->head;
 	while(temp){
@@ -158,10 +175,12 @@ int counter = 0;
 		temp = temp->next;
 		
 	}
+	sema_memory.up();
 	return counter;
 } 
 
 int mem_mgr::Mem_Largest(){// return the size of the largest available memory segment
+	sema_memory.down();
 int counter = 0;
 int tempcount = 0;
 	MemNode* temp = this->head;
@@ -180,10 +199,12 @@ int tempcount = 0;
 		temp = temp->next;
 		
 	}
+	sema_memory.up();
 	return counter;
 } 
 
 int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory segment
+	sema_memory.down();
 int counter = 1024;
 int tempcount = 0;
 	MemNode* temp = this->head;
@@ -202,10 +223,12 @@ int tempcount = 0;
 		temp = temp->next;
 		
 	}
+	sema_memory.up();
 	return counter;
 } 
 
 int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free space and place . dots in the coalesced memory.
+	sema_memory.down();
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->status == 0){
@@ -215,16 +238,18 @@ int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free sp
 		}
 		temp = temp->next;
 	}
+	sema_memory.up();
 	return 1;
 } 
 
 int mem_mgr::Mem_Dump(int starting_from, int num_bytes){// dump the contents of memory  add window parameter
+	sema_memory.down();
 	int end = starting_from + num_bytes;
 	for (int i = starting_from; i < end + 1; i++)
 	{
 		// make a dump window for this 
 		// Mem_Core[i];
 	}
-
+sema_memory.up();
 return 1;
 } 

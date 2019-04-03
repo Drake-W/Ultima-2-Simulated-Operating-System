@@ -18,6 +18,7 @@
 #define MEMORY_H
 #include <string>
 
+
 class mem_mgr{
 	public:
 		struct MemNode{

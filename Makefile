@@ -27,7 +27,7 @@ semaphore.o: semaphore.h semaphore.cpp queue.h window.h
 ipc.o: ipc.h ipc.cpp scheduler.h queue.h window.h
 	$(CXX) $(CXXFLAGS) -c ipc.cpp $(LINKS)
 
-memory.o: memory.h memory.cpp 
+memory.o: memory.h memory.cpp semaphore.h
 	$(CXX) $(CXXFLAGS) -c memory.cpp $(LINKS)
 		
 clean:
