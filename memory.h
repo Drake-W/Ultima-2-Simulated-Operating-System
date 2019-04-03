@@ -33,6 +33,7 @@ class mem_mgr{
 			MemNode * tail;
 			
 			bool status; // 0 is a hole, 1 is a process
+			bool linked; // 0 is unlinked, 1 is linked to the next node to increase size.
 		};
 	
 	void create_node(int value);  // creates and initializes Memory Node.
@@ -42,8 +43,8 @@ class mem_mgr{
 	int Mem_Read(int memory_handle, char *ch); // read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
 	int Mem_Write(int memory_handle, char ch); // write a character to the current location in memory, return a -1 if at end of bounds. 
 											   // overloaded multi-byte read and write
-	int Mem_Read(int memory_handle, int offset_from_beg, int text_size, chat *text); 
-	int Mem_Write(int memory_handle, int offset_from_beg, int text_size, chat *text);
+	int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text); 
+	int Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text);
 	
 	unsigned char Mem_Core[1024];
 	
