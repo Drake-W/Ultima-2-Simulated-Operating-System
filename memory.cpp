@@ -15,7 +15,7 @@
 *==================================================================================*/
 
 #include "memory.h"
-mem_mgr::Mem_mgr(int size, char default_initial_value){// allocate 1024 unsigned chars and initialize the entire memory with . dots
+mem_mgr::mem_mgr(int size, char default_initial_value){// allocate 1024 unsigned chars and initialize the entire memory with . dots
 	
 	for (int i = 1; i < 9; i++){
 		create_node(i);
@@ -38,7 +38,7 @@ void mem_mgr::create_node(int value){
 	temp->linked = 1;
 	temp->current_location = temp->base;
 	
-	if (head = NULL){
+	if (head == NULL){
 		head = temp;
 		tail = temp;
 		temp = NULL;
@@ -52,7 +52,7 @@ void mem_mgr::create_node(int value){
 int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
 	//this->status = 1;
 	int count = 128;
-	if (size > mem_largest())
+	if (size > Mem_Largest())
 	{
 		return -1;
 	}
@@ -79,6 +79,7 @@ int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 
 			}
 		}
 	}
+	return 1;
 }
 
 int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, return -1 if errors occur
@@ -86,20 +87,20 @@ int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, retur
 	MemNode* temp = this->head;
 	
 	while(temp){
-		if (temp->handle = memory_handle){
+		if (temp->handle == memory_handle){
 			for(int i = temp->base; i < temp->limit + 1; i++){
 				Mem_Core[i] = '#';
 			}
-			this->status = 0;
-			this->owner = "none";
-			temp->current_location = temp->base;
-			break;
+			temp->status = 0;
+			temp->owner = "none";
+			temp->current_location = temp->base; //  need to add checking for linked nodes
+			return 1;
 		}
 		else{
 			temp = temp->next;
 		}
 	}
-
+return -1;
 }
 
 int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
@@ -108,7 +109,7 @@ int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from curr
 	while(temp){
 		if (temp->handle == memory_handle){
 			
-			ch = Mem_Core[temp->current_location];
+			ch = (char*)Mem_Core[temp->current_location];
 			
 			temp->current_location = temp->current_location - 1;
 			break;
@@ -139,9 +140,11 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 } 
 	// overloaded multi-byte read and write
 int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
+	return -1;
 }
 
 int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
+	return -1;
 }
 	
 int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
@@ -212,15 +215,16 @@ int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free sp
 		}
 		temp = temp->next;
 	}
+	return 1;
 } 
 
 int mem_mgr::Mem_Dump(int starting_from, int num_bytes){// dump the contents of memory  add window parameter
 	int end = starting_from + num_bytes;
-/*	for (int i = starting_from; i < end + 1; i++)
+	for (int i = starting_from; i < end + 1; i++)
 	{
 		// make a dump window for this 
 		// Mem_Core[i];
 	}
-*/
+
 return 1;
 } 
