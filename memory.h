@@ -28,13 +28,14 @@ class mem_mgr{
 			string owner;
 			
 			
-			MemNode * next_handle;
-			MemNode * head;
-			MemNode * tail;
+			MemNode * next;
+			
 			
 			bool status; // 0 is a hole, 1 is a process
 			bool linked; // 0 is unlinked, 1 is linked to the next node to increase size.
 		};
+	MemNode * head;
+	MemNode * tail;
 	
 	void create_node(int value);  // creates and initializes Memory Node.
 	Mem_mgr(int size, char default_initial_value); // allocate 1024 unsigned chars and initialize the entire memory with . dots

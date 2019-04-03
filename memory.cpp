@@ -51,7 +51,7 @@ void mem_mgr::create_node(int value){
 
 int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
 	//this->status = 1;
-	int count 128;
+	int count = 128;
 	if (size > mem_largest())
 	{
 		return -1;
@@ -70,12 +70,13 @@ int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 
 				}
 					
 			}// we have one big enough
-		temp->status = 1;
-		while( temp != temp2)
-		{
-			temp->linked =1;
-			temp = temp->next;
 			temp->status = 1;
+			while( temp != temp2)
+			{
+				temp->linked =1;
+				temp = temp->next;
+				temp->status = 1;
+			}
 		}
 	}
 }
@@ -214,11 +215,12 @@ int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free sp
 } 
 
 int mem_mgr::Mem_Dump(int starting_from, int num_bytes){// dump the contents of memory  add window parameter
-	int end = starting_from + num_bytes);
-	for (int i = starting_from; i < end + 1; i++)
+	int end = starting_from + num_bytes;
+/*	for (int i = starting_from; i < end + 1; i++)
 	{
 		// make a dump window for this 
 		// Mem_Core[i];
 	}
-
+*/
+return 1;
 } 
