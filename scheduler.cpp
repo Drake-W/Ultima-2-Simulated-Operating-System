@@ -17,12 +17,14 @@
 #include "semaphore.h"
 #include "scheduler.h"
 #include "window.h"
+#include "memory.h"
 
 #define BLOCKED 0
 #define READY 1
 #define RUNNING 2
 #define DEAD 3
 
+extern mem_mgr Mem_Mgr;
 extern semaphore sema_screen;
 extern semaphore sema_ptable;
 
@@ -106,6 +108,14 @@ int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin
 	tcb->thread_no = this->task_counter;
 	tcb->name = (char*) "UI Thread";
 	tcb->state = READY;
+	
+	// get memory
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	if (tcb->memhandle == -1){
+		// error getting memory
+		// return -1; 
+		// return -1 will not start UI loop but doesnt say anything 
+	}
 	
 	// create thread ui loop
 	result_code = pthread_create(&tcb->thread, NULL, ui_loop, tcb);

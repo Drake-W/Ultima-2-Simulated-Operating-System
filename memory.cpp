@@ -53,9 +53,12 @@ void mem_mgr::create_node(int value){
 	}
 }
 
-int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
+int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
 	sema_memory.down();
+	int handle = -1;
 	int count = 128;
+	// this code causes a seg fault
+	/*
 	if (size > Mem_Largest())
 	{
 		sema_memory.up();
@@ -76,16 +79,20 @@ int mem_mgr::MemAlloc(int size){// returns a unique integer memory_handle or -1 
 					
 			}// we have one big enough
 			temp->status = 1;
+			handle = temp->handle;
+			temp->owner = owner;
 			while( temp != temp2)
 			{
 				temp->linked =1;
 				temp = temp->next;
 				temp->status = 1;
+				temp->owner = owner;
 			}
 		}
 	}
+	*/
 	sema_memory.up();
-	return 1;
+	return handle;
 }
 
 int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, return -1 if errors occur

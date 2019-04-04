@@ -49,6 +49,7 @@ class scheduler {
 		int thread_results;			// Results
 		int state;
 		int pause_state;
+		int memhandle; 				// Memory handle
 		Queue<ipc::Message*> mailbox;
 		WINDOW *pdumpwin; // these are for the main input
 		WINDOW *sdumpwin;

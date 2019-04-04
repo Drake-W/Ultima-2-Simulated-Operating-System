@@ -21,7 +21,7 @@ window.o: window.h window.cpp semaphore.h ipc.h
 scheduler.o: scheduler.h scheduler.cpp queue.h window.h
 	$(CXX) $(CXXFLAGS) -c scheduler.cpp $(LINKS)
 
-semaphore.o: semaphore.h semaphore.cpp queue.h window.h
+semaphore.o: semaphore.h semaphore.cpp queue.h window.h memory.h
 	$(CXX) $(CXXFLAGS) -c semaphore.cpp $(LINKS)
 	
 ipc.o: ipc.h ipc.cpp scheduler.h queue.h window.h
