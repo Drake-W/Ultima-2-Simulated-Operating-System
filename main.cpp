@@ -58,7 +58,7 @@ int main() {
 //Creating heading window, printing content
 //------------------------------------------------------------------------------
  
-	WINDOW * Heading_Win = newwin(12, 80, 3, 2);
+	WINDOW * Heading_Win = newwin(12, 80, 0, 2);
 	box(Heading_Win, 0,0);
 	mvwprintw(Heading_Win, 2, 28, "ULTIMA 2.0 (Spring 2019)");
 	mvwprintw(Heading_Win, 4, 2, "Starting ULTIMA 2.0.....");
@@ -72,14 +72,14 @@ int main() {
 //Creating log window
 //------------------------------------------------------------------------------
 
-	WINDOW * Log_Win = create_window(15, 60, 30, 2);
+	WINDOW * Log_Win = create_window(15, 60, 27, 2);
 	write_window(Log_Win, 1, 18, "...........Log...........\n");
  
 //------------------------------------------------------------------------------
 //Creating console window
 //------------------------------------------------------------------------------
 
-	WINDOW * Console_Win = create_window(15, 20, 30, 62);
+	WINDOW * Console_Win = create_window(15, 20, 27, 62);
 	write_window(Console_Win, 1, 1, " ....Console....\n");
 	write_window(Console_Win, 2, 1, "Ultima # ");
 	write_window(Log_Win, " Main program started\n" );
@@ -88,15 +88,15 @@ int main() {
 //Creating 3 windows for tasks
 //------------------------------------------------------------------------------
 
-	WINDOW * W1 = create_window(15, 25, 15, 2);
-	WINDOW * W2 = create_window(15, 25, 15, 30);
-	WINDOW * W3 = create_window(15, 25, 15, 57);
+	WINDOW * W1 = create_window(15, 25, 12, 2);
+	WINDOW * W2 = create_window(15, 25, 12, 30);
+	WINDOW * W3 = create_window(15, 25, 12, 57);
 	
 //------------------------------------------------------------------------------
 //Creating a process table dump window
 //------------------------------------------------------------------------------
 
-	WINDOW * Process_Table = create_window(9, 80, 3, 83);
+	WINDOW * Process_Table = create_window(9, 80, 0, 83);
 	write_window(Process_Table, 1, 5, "      PROCESS TABLE DUMP \n -------------------------------------\n");
 	
 //------------------------------------------------------------------------------
@@ -111,14 +111,21 @@ int main() {
 //Creating a semaphore dump window
 //-------------------------------------------------------------------------------
 
-	WINDOW * Sema_Dump = create_window(16, 80, 12, 83);
+	WINDOW * Sema_Dump = create_window(16, 80, 9, 83);
 	write_window(Sema_Dump, 1, 5, "        SEMAPHORE DUMP \n -------------------------------------\n");
+	
+//-------------------------------------------------------------------------------
+//Creating a memory dump window
+//-------------------------------------------------------------------------------
+
+	WINDOW * Mem_Dump = create_window(14, 80, 42, 2);
+	write_window(Mem_Dump, 1, 5, "                   MEMORY DUMP \n --------------------------------------------------------\n");
 
 //------------------------------------------------------------------------------
 //Create a Messaging dump window
 //------------------------------------------------------------------------------
 
-	WINDOW * Message_Dump = create_window(17, 80, 28, 83);
+	WINDOW * Message_Dump = create_window(17, 80, 25, 83);
 	write_window(Message_Dump, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");
 	
 //------------------------------------------------------------------------------
@@ -137,7 +144,7 @@ int main() {
 	
  	sched.run(); //start running all the tasks
 	
-	sched.create_ui_task(Process_Table, Sema_Dump, Console_Win, Log_Win, Message_Dump);
+	sched.create_ui_task(Process_Table, Sema_Dump, Console_Win, Log_Win, Message_Dump, Mem_Dump);
 	
 	while(sched.process_table.qSize() != 0){ // loop while threads run
 		sleep(1);

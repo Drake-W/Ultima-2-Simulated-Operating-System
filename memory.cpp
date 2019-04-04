@@ -17,6 +17,7 @@
 #include "memory.h"
 #include "semaphore.h"
 
+
 extern semaphore sema_memory;
 
 mem_mgr::mem_mgr(int size, char default_initial_value){// allocate 1024 unsigned chars and initialize the entire memory with . dots
@@ -57,6 +58,13 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 	sema_memory.down();
 	int handle = -1;
 	int count = 128;
+	
+	//just gives the first node for testing
+	MemNode * temp = this->head;
+	temp->status = 1;
+	handle = temp->handle;
+	temp->owner = owner;
+	
 	// this code causes a seg fault
 	/*
 	if (size > Mem_Largest())
@@ -249,13 +257,16 @@ int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free sp
 	return 1;
 } 
 
-int mem_mgr::Mem_Dump(int starting_from, int num_bytes){// dump the contents of memory  add window parameter
+int mem_mgr::Mem_Dump(int starting_from, int num_bytes, WINDOW * win){// dump the contents of memory  add window parameter
 	sema_memory.down();
+	char buff[256];
 	int end = starting_from + num_bytes;
 	for (int i = starting_from; i < end + 1; i++)
 	{
 		// make a dump window for this 
 		// Mem_Core[i];
+		sprintf(buff, " bit %d = %c", i, Mem_Core[i]);
+		write_window(win, buff);
 	}
 sema_memory.up();
 return 1;

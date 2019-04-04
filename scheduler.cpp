@@ -95,7 +95,7 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	return 0;
 } // end of create_task
 
-int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin){
+int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin, WINDOW * memwin){
 	int result_code;
 	TCB * tcb = new TCB;
 	this->task_counter++;
@@ -104,6 +104,7 @@ int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin
 	tcb->conwin = conwin;
 	tcb->logwin = logwin;
 	tcb->messwin = messwin;
+	tcb->memwin = memwin;
 	
 	tcb->thread_no = this->task_counter;
 	tcb->name = (char*) "UI Thread";

@@ -18,7 +18,7 @@
 #include "semaphore.h"
 #include "ipc.h"
 #include "time.h"
-
+#include "memory.h"
 
 extern semaphore sema_screen;
 extern semaphore sema_t1mail;	
@@ -28,6 +28,7 @@ extern semaphore sema_t4mail;
 extern semaphore sema_ptable;	
 extern scheduler sched;
 extern ipc IPC;
+extern mem_mgr Mem_Mgr;
 
 WINDOW *create_window(int height, int width, int starty, int startx)
 {
@@ -145,6 +146,7 @@ void *ui_loop(void *arguments)
 	WINDOW * conwin = tcb->conwin;
 	WINDOW * logwin = tcb->logwin;
 	WINDOW * messwin = tcb->messwin;
+	WINDOW * memwin = tcb->memwin;
 	//char* input = tcb->input;
 	char buff[256];
 	
@@ -208,6 +210,10 @@ void *ui_loop(void *arguments)
 				sema_t3mail.dump(1, sdumpwin);
 				sema_t4mail.dump(1, sdumpwin);
 				sema_ptable.dump(1, sdumpwin);
+					
+					
+				Mem_Mgr.Mem_Dump(1,3, memwin);	
+					
 					
 				write_window(messwin, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");	
 				IPC.ipc_Message_Dump(messwin);

@@ -15,7 +15,7 @@ main: main.o scheduler.o semaphore.o window.o ipc.o memory.o
 main.o: main.cpp scheduler.h semaphore.h queue.h window.h
 	$(CXX) $(CXXFLAGS) -c main.cpp $(LINKS)
 	
-window.o: window.h window.cpp semaphore.h ipc.h
+window.o: window.h window.cpp semaphore.h ipc.h memory.h
 	$(CXX) $(CXXFLAGS) -c window.cpp $(LINKS)
 
 scheduler.o: scheduler.h scheduler.cpp queue.h window.h
@@ -27,7 +27,7 @@ semaphore.o: semaphore.h semaphore.cpp queue.h window.h memory.h
 ipc.o: ipc.h ipc.cpp scheduler.h queue.h window.h
 	$(CXX) $(CXXFLAGS) -c ipc.cpp $(LINKS)
 
-memory.o: memory.h memory.cpp semaphore.h
+memory.o: memory.h memory.cpp semaphore.h window.h
 	$(CXX) $(CXXFLAGS) -c memory.cpp $(LINKS)
 		
 clean:
