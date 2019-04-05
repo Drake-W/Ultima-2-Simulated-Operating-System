@@ -35,6 +35,7 @@ void scheduler::dump(int level, WINDOW * win) {
 	write_window(win, 1, 5, "      PROCESS TABLE DUMP \n -------------------------------------\n");
 	char buff[256];
 	int procnum1;
+	int memhandle;
 	int size = process_table.qSize();
 	
 	if (size == 0)					// Check if anything is in the queue
@@ -44,18 +45,20 @@ void scheduler::dump(int level, WINDOW * win) {
 		TCB *tcb = process_table.Dequeue();
 		process_table.Enqueue(tcb);
 		procnum1 = tcb->thread_no;
+		memhandle = tcb->memhandle;
+		
 	
 		if ( tcb->state == READY){
-			sprintf(buff, " Task #%d status Ready\n", procnum1);
+			sprintf(buff, " Task #%d status: Ready\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}
 		else if (tcb->state == RUNNING){
-			sprintf(buff, " Task #%d status Running\n", procnum1);
+			sprintf(buff, " Task #%d status: Running\tMemory Handle: %d\n", procnum1, memhandle);
 		} 
 		else if (tcb->state == BLOCKED){
-			sprintf(buff, " Task #%d status Blocked\n", procnum1);
+			sprintf(buff, " Task #%d status: Blocked\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}
 		else if (tcb->state == DEAD){
-			sprintf(buff, " Task #%d status Dead\n", procnum1);
+			sprintf(buff, " Task #%d status: Dead\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}// end else
 		write_window(win, buff);
 	} // end for
@@ -85,6 +88,15 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	tcb->thread_no = this->task_counter;
 	tcb->name = name;
 	tcb->state = READY;
+	
+	
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	if (tcb->memhandle == -1){
+		// error getting memory
+		// return -1; 
+		// return -1 will not start UI loop but doesnt say anything 
+	}
+	
 	
 	// create thread running simple output in its own window
 	result_code = pthread_create(&tcb->thread, NULL, perform_simple_output, tcb);

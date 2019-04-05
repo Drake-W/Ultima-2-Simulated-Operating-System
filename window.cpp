@@ -89,13 +89,18 @@ void *perform_simple_output(void *arguments)
 	int yield_quantum = 0;
 	char buff[256];
 	time_t messagetime;
+	char write;
+	char *read;
+	unsigned seed= time(0);
+    srand(seed);
+	
 	
 
 		
 	while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
 			if(yield_quantum == 0){ // updates process table when thread gets cpu time
-				sched.dump(1, pdumpwin);
+				//sched.dump(1, pdumpwin);
 			}
 			
 			if (CPU_Quantum == 0) { // First thing a task does is send messages
@@ -118,6 +123,11 @@ void *perform_simple_output(void *arguments)
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
+				
+				if(yield_quantum == 1){
+					write = '0' + rand()%77;
+					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
+				}
 			}
 			yield_quantum++;
 			if (tcb->kill_signal == 1){ // set to be killed
@@ -127,6 +137,10 @@ void *perform_simple_output(void *arguments)
 				} 
 			if (yield_quantum == 1001){// if quantum is up 
 					yield_quantum = 0; //reset
+					
+					Mem_Mgr.Mem_Read(tcb->memhandle,read);
+					sprintf(buff," Reading from memory... \n  %s\n", read);
+					write_window(Win, buff); 
 					write_window(Win, " I'm yielding...\n"); 
 					sched.yield();
 					//sleep(1);
@@ -153,7 +167,7 @@ void *ui_loop(void *arguments)
 		while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
 			 // updates process table when thread gets cpu time
-				sched.dump(1, pdumpwin);
+				//sched.dump(1, pdumpwin);
 			
 			switch(wgetch(conwin))
 		{

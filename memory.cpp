@@ -19,6 +19,7 @@
 
 
 extern semaphore sema_memory;
+extern semaphore sema_screen;
 
 mem_mgr::mem_mgr(int size, char default_initial_value){// allocate 1024 unsigned chars and initialize the entire memory with . dots
 	
@@ -61,6 +62,9 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 	
 	//just gives the first node for testing
 	MemNode * temp = this->head;
+	while(temp->status == 1){
+		temp = temp->next;
+	}
 	temp->status = 1;
 	handle = temp->handle;
 	temp->owner = owner;
@@ -132,31 +136,41 @@ int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from curr
 	while(temp){
 		if (temp->handle == memory_handle){
 			
-			ch = (char*)Mem_Core[temp->current_location];
+			if (temp->current_location != temp->base){
+				ch = (char*)Mem_Core[temp->current_location];
 			
-			temp->current_location = temp->current_location - 1;
-			sema_memory.up();
-			return 1;
-		}
-		else{
+				temp->current_location = temp->current_location - 1;	
+				
+				sema_memory.up();
+				return 1;
+			}else{
+				sema_memory.up();
+				return -1;
+			}
+		}else{
 			temp = temp->next;
-		}
+		
 	}
 	sema_memory.up();
 	return -1;
 }
-
+}
 int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the current location in memory, return a -1 if at end of bounds. 
 sema_memory.down();
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->handle == memory_handle){
 			
-			Mem_Core[temp->current_location] = ch;
+			if (temp->current_location <= temp->limit){
+				Mem_Core[temp->current_location] = ch;
 			
-			temp->current_location = temp->current_location + 1;
-			sema_memory.up();
-			return 1;
+				temp->current_location = temp->current_location + 1;
+				sema_memory.up();
+				return 1;
+			}else{
+				sema_memory.up();
+				return -1;
+			}
 		}
 		else{
 			temp = temp->next;
@@ -274,11 +288,14 @@ return 1;
 
 int mem_mgr::Core_Dump( WINDOW * win){
 	sema_memory.down();
+	sema_screen.down();
+	wclear(win);
+	sema_screen.up(); 
 	char buff[256];
 	char buff2[256];
 	char temp;
 	int count = 0;
-	write_window(win, " Memory core dump : \n");
+	write_window(win, "\n -----------Memory core dump---------- \n");
 	for (int i = 0; i < 16; i++){
 		for (int j = 1; j < 65; j++){
 			buff[j] = Mem_Core[count];
