@@ -58,28 +58,24 @@ int main() {
 //Creating heading window, printing content
 //------------------------------------------------------------------------------
  
-	WINDOW * Heading_Win = newwin(12, 80, 0, 2);
+	WINDOW * Heading_Win = newwin(5, 80, 0, 2);
 	box(Heading_Win, 0,0);
-	mvwprintw(Heading_Win, 2, 28, "ULTIMA 2.0 (Spring 2019)");
-	mvwprintw(Heading_Win, 4, 2, "Starting ULTIMA 2.0.....");
-	mvwprintw(Heading_Win, 5, 2, "Starting Thread 1....");
-	mvwprintw(Heading_Win, 6, 2, "Starting Thread 2....");
-	mvwprintw(Heading_Win, 7, 2, "Starting Thread 3....");
-	mvwprintw(Heading_Win, 9, 2, "Press 'q' or Ctrl-C to exit the program...");
+	mvwprintw(Heading_Win, 1, 26, "ULTIMA 2.0 Phase 3 (Spring 2019)");
+	mvwprintw(Heading_Win, 3, 28, "Drake Wood 	James Giegerich");
 	wrefresh(Heading_Win);
 	
 //------------------------------------------------------------------------------
 //Creating log window
 //------------------------------------------------------------------------------
 
-	WINDOW * Log_Win = create_window(15, 60, 27, 2);
+	WINDOW * Log_Win = create_window(15, 60, 20, 2);
 	write_window(Log_Win, 1, 18, "...........Log...........\n");
  
 //------------------------------------------------------------------------------
 //Creating console window
 //------------------------------------------------------------------------------
 
-	WINDOW * Console_Win = create_window(15, 20, 27, 62);
+	WINDOW * Console_Win = create_window(15, 20, 20, 62);
 	write_window(Console_Win, 1, 1, " ....Console....\n");
 	write_window(Console_Win, 2, 1, "Ultima # ");
 	write_window(Log_Win, " Main program started\n" );
@@ -88,9 +84,9 @@ int main() {
 //Creating 3 windows for tasks
 //------------------------------------------------------------------------------
 
-	WINDOW * W1 = create_window(15, 25, 12, 2);
-	WINDOW * W2 = create_window(15, 25, 12, 30);
-	WINDOW * W3 = create_window(15, 25, 12, 57);
+	WINDOW * W1 = create_window(15, 25, 5, 2);
+	WINDOW * W2 = create_window(15, 25, 5, 30);
+	WINDOW * W3 = create_window(15, 25, 5, 57);
 	
 //------------------------------------------------------------------------------
 //Creating a process table dump window
@@ -118,7 +114,7 @@ int main() {
 //Creating a memory dump window
 //-------------------------------------------------------------------------------
 
-	WINDOW * Mem_Dump = create_window(14, 80, 42, 2);
+	WINDOW * Mem_Dump = create_window(22, 80, 35, 2);
 	write_window(Mem_Dump, 1, 5, "                   MEMORY DUMP \n --------------------------------------------------------\n");
 
 //------------------------------------------------------------------------------

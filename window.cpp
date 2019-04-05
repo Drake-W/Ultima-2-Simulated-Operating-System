@@ -211,8 +211,8 @@ void *ui_loop(void *arguments)
 				sema_t4mail.dump(1, sdumpwin);
 				sema_ptable.dump(1, sdumpwin);
 					
-					
-				Mem_Mgr.Mem_Dump(1,3, memwin);	
+				//core dump	
+				Mem_Mgr.Core_Dump(memwin);	
 					
 					
 				write_window(messwin, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");	

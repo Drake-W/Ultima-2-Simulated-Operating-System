@@ -265,9 +265,28 @@ int mem_mgr::Mem_Dump(int starting_from, int num_bytes, WINDOW * win){// dump th
 	{
 		// make a dump window for this 
 		// Mem_Core[i];
-		sprintf(buff, " bit %d = %c", i, Mem_Core[i]);
+		sprintf(buff, "%c", Mem_Core[i]);
 		write_window(win, buff);
 	}
 sema_memory.up();
 return 1;
 } 
+
+int mem_mgr::Core_Dump( WINDOW * win){
+	sema_memory.down();
+	char buff[256];
+	char buff2[256];
+	char temp;
+	int count = 0;
+	write_window(win, " Memory core dump : \n");
+	for (int i = 0; i < 16; i++){
+		for (int j = 1; j < 65; j++){
+			buff[j] = Mem_Core[count];
+			count++;
+		}
+		buff[0] = ' ';
+		buff[65] = '\n';
+		write_window(win, buff);
+	}
+	sema_memory.up();
+}

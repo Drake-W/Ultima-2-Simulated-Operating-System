@@ -58,6 +58,7 @@ class mem_mgr{
 	int Mem_Smallest(); // return the size of the smallest available memory segment
 	int Mem_Coalesce(); // combine two or more contiguous blocks of free space and place . dots in the coalesced memory. 
 	int Mem_Dump(int starting_from, int num_bytes, WINDOW * win); // dump the contents of memory
+	int Core_Dump(WINDOW * win);
 };
 
 #endif
