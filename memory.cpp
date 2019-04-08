@@ -69,6 +69,10 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 	handle = temp->handle;
 	temp->owner = owner;
 	
+	//instead of using linked as a bool I think linked needs to be an INT to the handle of the next node
+	//this way we can link them even if they are not next to eachother
+	
+	
 	// this code causes a seg fault
 	/*
 	if (size > Mem_Largest())
@@ -106,7 +110,7 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 	sema_memory.up();
 	return handle;
 }
-
+//****************************not tested******************************
 int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, return -1 if errors occur
 sema_memory.down();
 	MemNode* temp = this->head;
@@ -153,7 +157,7 @@ int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from curr
 	}
 	sema_memory.up();
 	return -1;
-}
+	}
 }
 int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the current location in memory, return a -1 if at end of bounds. 
 sema_memory.down();
@@ -180,18 +184,60 @@ sema_memory.down();
 	return -1;
 } 
 	// overloaded multi-byte read and write
+//****************************not tested******************************
 int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
 	sema_memory.down();
+	int cl = 0 //current location for offset
+	MemNode* temp = this->head;
+	while(temp){
+		if (temp->handle == memory_handle){
+			cl = base + offset_from_beg;
+			
+			while (cl <= limit) && ( text_size > 0){
+				text = Mem_Core[cl];  // gotta figure out how this is going to work for char* to [array]
+				cl++;
+				text_size--;
+				// will need to add check for linked nodes
+			}
+
+		return 1;
+
+		}
+		else{
+			temp = temp->next;
+		}
+	}
+	sema_memory.up();
+	return -1;
+}
+//****************************not tested******************************
+int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
+	sema_memory.down();
+	int cl = 0 //current location for offset
+	MemNode* temp = this->head;
+	while(temp){
+		if (temp->handle == memory_handle){
+			cl = base + offset_from_beg;
+			
+			while (cl <= limit) && ( text_size > 0){
+				Mem_Core[cl] = text; // gotta figure out how this is going to work for char* to [array]
+				cl++;
+				text_size--;
+				// will need to add check for linked nodes
+			}
+
+		return 1;
+
+		}
+		else{
+			temp = temp->next;
+		}
+	}
 	sema_memory.up();
 	return -1;
 }
 
-int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
-	sema_memory.down();
-	sema_memory.up();
-	return -1;
-}
-	
+//****************************not tested******************************
 int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
 	sema_memory.down();
 int counter = 0;
@@ -208,6 +254,7 @@ int counter = 0;
 	return counter;
 } 
 
+//****************************not tested******************************
 int mem_mgr::Mem_Largest(){// return the size of the largest available memory segment
 	sema_memory.down();
 int counter = 0;
@@ -232,6 +279,7 @@ int tempcount = 0;
 	return counter;
 } 
 
+//****************************not tested****************************** 
 int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory segment
 	sema_memory.down();
 int counter = 1024;
@@ -256,6 +304,7 @@ int tempcount = 0;
 	return counter;
 } 
 
+//****************************not tested******************************
 int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free space and place . dots in the coalesced memory.
 	sema_memory.down();
 	MemNode* temp = this->head;
@@ -271,14 +320,16 @@ int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free sp
 	return 1;
 } 
 
-int mem_mgr::Mem_Dump(int starting_from, int num_bytes, WINDOW * win){// dump the contents of memory  add window parameter
+int mem_mgr::Mem_Dump(int starting_from, int num_bytes, WINDOW * win){// dump the contents of memory for specific location
 	sema_memory.down();
 	char buff[256];
 	int end = starting_from + num_bytes;
+	
+	sprintf(buff, " Memory dump of %d bytes starting at address:%d \n", num_bytes, starting_from);
+	write_window(win, buff);
+	
 	for (int i = starting_from; i < end + 1; i++)
 	{
-		// make a dump window for this 
-		// Mem_Core[i];
 		sprintf(buff, "%c", Mem_Core[i]);
 		write_window(win, buff);
 	}
@@ -286,14 +337,14 @@ sema_memory.up();
 return 1;
 } 
 
-int mem_mgr::Core_Dump( WINDOW * win){
+int mem_mgr::Core_Dump( WINDOW * win){  // dumps entire contents of memory to the screen
 	sema_memory.down();
 	sema_screen.down();
 	wclear(win);
 	sema_screen.up(); 
 	char buff[256];
-	char buff2[256];
-	char temp;
+	//char buff2[256];
+	//char temp;
 	int count = 0;
 	write_window(win, "\n -----------Memory core dump---------- \n");
 	for (int i = 0; i < 16; i++){
