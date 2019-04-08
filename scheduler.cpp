@@ -89,7 +89,7 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	tcb->name = name;
 	tcb->state = READY;
 	
-	//tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
 	if (tcb->memhandle == -1){
 		// error getting memory
 		 //return -1; 

@@ -90,7 +90,7 @@ void *perform_simple_output(void *arguments)
 	char buff[256];
 	time_t messagetime;
 	char write;
-	char *read;
+	char read = '=';
 	unsigned seed= time(0);
     srand(seed);
 	
@@ -123,12 +123,13 @@ void *perform_simple_output(void *arguments)
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
-				/*
+				
 				if(yield_quantum == 1){
 					write = '0' + rand()%77;
 					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
 				}
-				*/
+
+				
 			}
 			yield_quantum++;
 			if (tcb->kill_signal == 1){ // set to be killed
@@ -138,18 +139,19 @@ void *perform_simple_output(void *arguments)
 				} 
 			if (yield_quantum == 1001){// if quantum is up 
 					yield_quantum = 0; //reset
-					/*
-					Mem_Mgr.Mem_Read(tcb->memhandle,read);
-					sprintf(buff," Reading from memory... \n  %s\n", read);
-					write_window(Win, buff); 
-					*/
+					
+					if(Mem_Mgr.Mem_Read(tcb->memhandle,&read)){
+						sprintf(buff," Reading from memory... \n    %c\n", read);
+						write_window(Win, buff); 
+					}
 					write_window(Win, " I'm yielding...\n"); 
 					sched.yield();
 					//sleep(1);
 				}
 			}
+			
 		} // end while
-	
+		Mem_Mgr.Mem_Free(tcb->memhandle);
 	return 0;
 }
 
@@ -204,7 +206,7 @@ void *ui_loop(void *arguments)
 				refresh(); 			// Clear the entire screen (in case it is corrupted)
 				wclear(conwin); 	// Clear the Console window
 				sema_screen.up();
-				
+				Mem_Mgr.Mem_Coalesce(); // u suck
 				write_window(conwin, 1, 1, "Ultima # ");
 				break;
 			case 'd':
@@ -229,6 +231,8 @@ void *ui_loop(void *arguments)
 					
 				//core dump	
 				Mem_Mgr.Core_Dump(memwin);	
+				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
+				write_window(logwin, buff);
 					
 					
 				write_window(messwin, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");	
@@ -239,13 +243,14 @@ void *ui_loop(void *arguments)
 			case 'h':					// HELP
 				
 				display_help(conwin);
-
+				Mem_Mgr.Mem_Usage(memwin);
+				
 				break;
 			case 'g':
 				sched.garbage_collect();
 				write_window(conwin, "g \n Ultima # ");
 				write_window(logwin, " Garbage collect\n"); 
-				sched.yield();
+				//sched.yield();
 				break;
 			case 'q':					// QUIT
 				write_window(logwin," Quiting the main program....\n" );
@@ -277,7 +282,8 @@ void *ui_loop(void *arguments)
 				break;
 			case ERR:	// If wgetch() return ERR, that means no keys were pressed
 				if (tcb->kill_signal == 1){ // set to be killed
-					write_window(logwin, " UI window dying...\n"); 
+					write_window(logwin, " UI window dying...\n");
+					Mem_Mgr.Mem_Free(tcb->memhandle);
 					tcb->state = 3;
 				} else {
 			//write_window(logwin, " NO INPUT, UI yielding...\n");

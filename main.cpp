@@ -98,7 +98,7 @@ int main() {
 //------------------------------------------------------------------------------
 //Creating tasks with create_task passing each a name and task window 
 //------------------------------------------------------------------------------
-
+	
 	sched.create_task((char*)" Task 1", W1,Process_Table);
 	sched.create_task((char*)" Task 2", W2,Process_Table);
 	sched.create_task((char*)" Task 3", W3,Process_Table);

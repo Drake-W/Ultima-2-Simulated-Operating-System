@@ -16,6 +16,7 @@
 
 #include "memory.h"
 #include "semaphore.h"
+#include <cstring>
 
 
 extern semaphore sema_memory;
@@ -99,22 +100,24 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 
 
 int mem_mgr::First_Fit(int size){ // given a desired size will return the first node/link handle that can provide enough space. 
-	return 1;
 	sema_memory.down();
 	int handle;	
 	int tempcount = 0;
 	MemNode* temp = this->head;
 	while(temp){
 		tempcount = 0;
-		if ((temp->status == 0) && (temp->start == 1)){ // find a hole while is also the first node
+		if (temp->status == 0){ // find a hole while is also the first node
 			handle = temp->handle; // record handle in case this one ends up being big enough
 			tempcount = tempcount + 128; // keep track of size // temp->size should go here
+
 			while (temp->linked){
 				temp = temp->next;
 				tempcount = tempcount + 128; // find the full size of the hole // temp->size should go here
+		
 			}
 		}
 		if (tempcount >= size){ // if the hole is large enough return the handle
+			sema_memory.up();
 			return handle;
 		}
 		temp = temp->next; // check next node if needed. 
@@ -166,28 +169,22 @@ sema_memory.down();
 int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
 	sema_memory.down();
 	MemNode* temp = this->head;
-	while(temp){
-		if (temp->handle == memory_handle){
-			
-			if (temp->current_location != temp->base){ // make sure we dont end up in the previous node
-				ch = (char*)Mem_Core[temp->current_location]; // having an issue displaying the character after this is ran
-			
-				temp->current_location = temp->current_location - 1;	
-				
-				sema_memory.up();
-				return 1;
-			}else{
-				sema_memory.up();
-				return -1;
-			}
-		}else{
-			temp = temp->next;
-		
+	while (temp->handle != memory_handle){ // get us to the right node
+		temp = temp->next;
 	}
+	if (temp->current_location > temp->base){
+		*ch = Mem_Core[temp->current_location -1]; // having an issue displaying the character after this is ran
+		temp->current_location = temp->current_location - 1;	
+	
+	}else{
+		sema_memory.up();
+		return -1;
+	}
+
 	sema_memory.up();
-	return -1;
+	return 1;
 	}
-}
+
 			
 //does not check if the node is full and if it is linked to another so it can write more.
 int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the current location in memory, return a -1 if at end of bounds. 
@@ -231,7 +228,7 @@ int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, cha
 				text_size--;
 				// will need to add check for linked nodes
 			}
-
+sema_memory.up();
 		return 1;
 
 		}
@@ -257,7 +254,7 @@ int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, ch
 				text_size--;
 				// will need to add check for linked nodes
 			}
-
+			sema_memory.up();
 		return 1;
 
 		}
@@ -269,7 +266,6 @@ int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, ch
 	return -1;
 }
 
-//****************************not tested******************************
 int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
 	sema_memory.down();
 	int counter = 0;
@@ -284,7 +280,6 @@ int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
 	return counter;
 } 
 
-//****************************not tested******************************
 int mem_mgr::Mem_Largest(){// return the size of the largest available memory segment
 	sema_memory.down();
 	int counter = 0;
@@ -298,9 +293,10 @@ int mem_mgr::Mem_Largest(){// return the size of the largest available memory se
 				temp = temp->next;
 				tempcount = tempcount + 128; // temp->size should go here
 			}
-		}
+		
 		if (tempcount > counter){
 			counter = tempcount;
+		}
 		}
 		temp = temp->next;
 		
@@ -309,7 +305,6 @@ int mem_mgr::Mem_Largest(){// return the size of the largest available memory se
 	return counter;
 } 
 
-//****************************not tested****************************** 
 int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory segment
 	sema_memory.down();
 	int counter = 1024;
@@ -323,10 +318,11 @@ int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory 
 				temp = temp->next;
 				tempcount = tempcount + 128; // temp->size should go here
 			}
-		}
-		if (tempcount < counter){
+			if (tempcount < counter){
 			counter = tempcount;
+			}
 		}
+		
 		temp = temp->next;
 		
 	}
@@ -337,18 +333,34 @@ int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory 
 //****************************not tested******************************
 int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free space and place . dots in the coalesced memory.
 	sema_memory.down();
+	int array[9];
+	
 	MemNode* temp = this->head;
-	while(temp){
-		if (temp->status == 0){ // find the start of a hole
-			temp->start = 1;
-			while(temp->next->status == 0){ // link additional nodes till used memory is found
-				temp->linked = temp->next->handle;
-				temp->start = 0; // just in case 2 holes are next to eachother
-				temp = temp->next;
+	
+	for(int i = 1; i < 9; i++){
+		if (temp->status == 0){
+			array[i]=1;
+			for(int j = temp->base; j < temp->limit + 1; j++){
+				Mem_Core[j] = '.'; // clear out all left over data
 			}
 		}
-		temp = temp->next; // move to next node and check for hole
+		temp = temp->next;
 	}
+	
+	temp = this->head;
+	
+	for(int i = 1; i < 9; i++){
+		if (array[i] == 1){
+			temp->start = 1;
+			while(array[i+1] == 1){
+				temp->linked = temp->handle+1;
+				temp = temp->next;
+				i++;
+			}
+		}
+		temp = temp->next;
+	}
+	
 	sema_memory.up();
 	return 1;
 } 
@@ -369,7 +381,41 @@ int mem_mgr::Mem_Dump(int starting_from, int num_bytes, WINDOW * win){// dump th
 		sema_memory.up();
 		return 1;
 } 
-
+int mem_mgr::Mem_Usage(WINDOW * win){
+	sema_memory.down();
+	
+	MemNode* temp = this->head;
+	char buff[256];
+	sprintf(buff, " Status | Mem Handle | Start Loc | End Loc | Size | Cur Loc | TID \n");
+	write_window(win,buff);
+	char * status;
+	const char * name;
+	int handle, base, limit, size,  current_location;
+	int start;
+	int status1;
+	while(temp){
+		start = temp->start;
+		if(start){
+			status1 = temp->status;
+			if (status1){
+				status = "Used";
+			}else{
+				status = "Free";
+			}
+			name = temp->owner.c_str();
+			handle = temp->handle;
+			base = temp->base;
+			limit = temp->limit;
+			size = temp->size;
+			current_location = temp->current_location;
+			sprintf(buff, " %s \t\t%d \t%d   \t%d \t%d \t\t%d \t%s \n",status, handle, base, limit, size, current_location, name);
+			write_window(win,buff);
+		}
+		temp = temp->next;
+	}
+	
+	sema_memory.up();
+}
 int mem_mgr::Core_Dump( WINDOW * win){  // dumps entire contents of memory to the screen
 	sema_screen.down();
 	wclear(win);
