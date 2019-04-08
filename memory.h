@@ -35,7 +35,8 @@ class mem_mgr{
 			
 			
 			bool status; // 0 is a hole, 1 is a process
-			bool linked; // 0 is unlinked, 1 is linked to the next node to increase size.
+			int linked; // 0 is unlinked/end of link, 1+ is linked to the node with that handle going forward
+			bool start; // 0 is not start of a link, 1 is start of a link
 		};
 	MemNode * head;
 	MemNode * tail;
@@ -49,6 +50,7 @@ class mem_mgr{
 											   // overloaded multi-byte read and write
 	int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text); 
 	int Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text);
+	int First_Fit(int size);// given a desired size will return the first node/link handle that can provide enough space. 
 	
 	unsigned char Mem_Core[1024];
 	
