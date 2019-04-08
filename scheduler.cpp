@@ -89,11 +89,10 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	tcb->name = name;
 	tcb->state = READY;
 	
-	
-	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	//tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
 	if (tcb->memhandle == -1){
 		// error getting memory
-		// return -1; 
+		 //return -1; 
 		// return -1 will not start UI loop but doesnt say anything 
 	}
 	
@@ -123,9 +122,12 @@ int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin
 	tcb->state = READY;
 	
 	// get memory
-	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	char buff[256];
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); //calling this causes the crash
 	if (tcb->memhandle == -1){
 		// error getting memory
+		//sprintf(buff, " UI THREAD COULD NOT GET MEMORY\n");
+		//write_window(logwin, buff);
 		// return -1; 
 		// return -1 will not start UI loop but doesnt say anything 
 	}

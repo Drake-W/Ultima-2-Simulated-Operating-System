@@ -68,7 +68,7 @@ void mem_mgr::create_node(int value){
 int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer memory_handle or -1 if not enough memory is available. set the current_location for this memory segment (beginning of the allocated area
 	int handle = First_Fit(size);
 	sema_memory.down(); // calling this after first fit because it uses sema_memory also
-	int count = 128;
+	int count = 128; // temp->size should go here
 	
 	MemNode * temp = this->head;
 	while (temp->handle != handle){ // get us to the right node
@@ -85,7 +85,7 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 		temp->status = 1; //set status to allocated
 		temp->owner = owner; // assign the owner
 		temp->current_location = temp->base; // se the CL to the first point of the node.
-		count += 128;
+		count += 128; // temp->size should go here
 	}
 	
 	if (temp->linked){ // if this last node is linked then we need to unlink and set the next node to the start of a link
@@ -99,18 +99,19 @@ int mem_mgr::MemAlloc(int size, std::string owner){// returns a unique integer m
 
 
 int mem_mgr::First_Fit(int size){ // given a desired size will return the first node/link handle that can provide enough space. 
+	return 1;
 	sema_memory.down();
 	int handle;	
 	int tempcount = 0;
 	MemNode* temp = this->head;
 	while(temp){
 		tempcount = 0;
-		if ((temp->status == 0 && (temp->start == 1)){ // find a hole while is also the first node
+		if ((temp->status == 0) && (temp->start == 1)){ // find a hole while is also the first node
 			handle = temp->handle; // record handle in case this one ends up being big enough
-			tempcount = tempcount + 128; // keep track of size
+			tempcount = tempcount + 128; // keep track of size // temp->size should go here
 			while (temp->linked){
 				temp = temp->next;
-				tempcount = tempcount + 128; // find the full size of the hole
+				tempcount = tempcount + 128; // find the full size of the hole // temp->size should go here
 			}
 		}
 		if (tempcount >= size){ // if the hole is large enough return the handle
@@ -144,14 +145,14 @@ sema_memory.down();
 			temp->owner = "none";
 			temp->current_location = temp->base;
 		
-			if(temp-linked){
+			if(temp->linked){
 				temp = temp->next; // move to next node and run again 
 				runagain = 1;
 			}else{
 				runagain = 0; // end
 			}
 		
-		}while(runagain) // make sure  to clear out all linked nodes as well
+		}while(runagain); // make sure  to clear out all linked nodes as well
 	
 		sema_memory.up();
 		return 1;
@@ -218,14 +219,14 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 //****************************not tested******************************
 int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
 	sema_memory.down();
-	int cl = 0 //current location for offset
+	int cl = 0; //current location for offset
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->handle == memory_handle){
-			cl = base + offset_from_beg;
+			cl = temp->base + offset_from_beg;
 			
-			while (cl <= limit) && ( text_size > 0){
-				text = Mem_Core[cl];  // gotta figure out how this is going to work for char* to [array]
+			while ((cl <= temp->limit) && ( text_size > 0)){
+				//text = Mem_Core[cl];  // gotta figure out how this is going to work for char* to [array]
 				cl++;
 				text_size--;
 				// will need to add check for linked nodes
@@ -244,14 +245,14 @@ int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, cha
 //****************************not tested******************************
 int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
 	sema_memory.down();
-	int cl = 0 //current location for offset
+	int cl = 0; //current location for offset
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->handle == memory_handle){
-			cl = base + offset_from_beg;
+			cl = temp->base + offset_from_beg;
 			
-			while (cl <= limit) && ( text_size > 0){
-				Mem_Core[cl] = text; // gotta figure out how this is going to work for char* to [array]
+			while ((cl <= temp->limit) && ( text_size > 0)){
+				//Mem_Core[cl] = text; // gotta figure out how this is going to work for char* to [array]
 				cl++;
 				text_size--;
 				// will need to add check for linked nodes
@@ -275,7 +276,7 @@ int mem_mgr::Mem_Left(){// return the amount of core memory left in the OS
 	MemNode* temp = this->head;
 	while(temp){
 		if (temp->status == 0){
-			counter = counter + 128;
+			counter = counter + 128; // temp->size should go here
 		}
 		temp = temp->next;
 	}
@@ -292,10 +293,10 @@ int mem_mgr::Mem_Largest(){// return the size of the largest available memory se
 	while(temp){
 		tempcount = 0;
 		if (temp->status == 0){
-			tempcount = tempcount + 128;
+			tempcount = tempcount + 128; // temp->size should go here
 			while (temp->linked){
 				temp = temp->next;
-				tempcount = tempcount + 128;
+				tempcount = tempcount + 128; // temp->size should go here
 			}
 		}
 		if (tempcount > counter){
@@ -317,10 +318,10 @@ int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory 
 	while(temp){
 		tempcount = 0;
 		if (temp->status == 0){
-			tempcount = tempcount + 128;
+			tempcount = tempcount + 128; // temp->size should go here
 			while (temp->linked){
 				temp = temp->next;
-				tempcount = tempcount + 128;
+				tempcount = tempcount + 128; // temp->size should go here
 			}
 		}
 		if (tempcount < counter){

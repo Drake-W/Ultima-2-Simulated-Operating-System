@@ -123,11 +123,12 @@ void *perform_simple_output(void *arguments)
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
-				
+				/*
 				if(yield_quantum == 1){
 					write = '0' + rand()%77;
 					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
 				}
+				*/
 			}
 			yield_quantum++;
 			if (tcb->kill_signal == 1){ // set to be killed
@@ -137,10 +138,11 @@ void *perform_simple_output(void *arguments)
 				} 
 			if (yield_quantum == 1001){// if quantum is up 
 					yield_quantum = 0; //reset
-					
+					/*
 					Mem_Mgr.Mem_Read(tcb->memhandle,read);
 					sprintf(buff," Reading from memory... \n  %s\n", read);
 					write_window(Win, buff); 
+					*/
 					write_window(Win, " I'm yielding...\n"); 
 					sched.yield();
 					//sleep(1);
