@@ -1,17 +1,32 @@
 /*==================================================================================|
 |    Assignment:	Ultima 2.0 Phase 3
 |     File Name:	memory.h
-|  Dependencies: 	none
+|  Dependencies: 	string window.h
 |       Authors: 	Drake Wood, James Giegerich
 |      Language: 	C++
 |      Compiler: 	G++
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
-|  Last Updated:	3/18/2019
-|      Due Date: 	3/18/2019
+|  Last Updated:	4/08/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
-|  Description: This is the header file which defines the class mem_mgr.
+|  Description: This is the header file which defines the class mem_mgr. 
+				-MemNode is the structure that contains information for each block of  memory.
+				-create_node creates a node with given size, must be called multiple times.
+				-mem_mgr constructor for the core memory.
+				-MemAlloc Called by a task to ask for memory to be assigned.
+				-Mem_Free Clears memory when task is dead.
+				-Mem_Read Returns memory and can be overloaded.
+				-Mem_Write Writes to memory and can be overloaded.
+				-First_Fit Returns the mem handle for the first fit for requested size.
+				-Mem_Left Returns how much memory is left.
+				-Mem_Largest Returns the largest piece of free memory left.
+				-Mem_Smallest Returns the smalles piece of free memory left. 
+				-Mem_Coalesce Combines free memory nodes into a larger block. 
+				-Mem_Dump Dumps a specific memory segment.
+				-Core_Dump Dumps entire core memory.
+				-Mem_Usage Reports memory usage.
 *==================================================================================*/
 
 #ifndef MEMORY_H
@@ -29,11 +44,7 @@ class mem_mgr{
 			int size;
 			int current_location;
 			std::string owner;
-			
-			
 			MemNode * next;
-			
-			
 			bool status; // 0 is a hole, 1 is a process
 			int linked; // 0 is unlinked/end of link, 1+ is linked to the node with that handle going forward
 			bool start; // 0 is not start of a link, 1 is start of a link

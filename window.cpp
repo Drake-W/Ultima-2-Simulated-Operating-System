@@ -8,8 +8,8 @@
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
-|  Last Updated:	3/18/2019
-|        Due Date: 	3/18/2019
+|  Last Updated:	4/08/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the definitions for the functions outlined in window.h                     
 *==================================================================================*/
@@ -19,6 +19,7 @@
 #include "ipc.h"
 #include "time.h"
 #include "memory.h"
+#include <cstring>
 
 extern semaphore sema_screen;
 extern semaphore sema_t1mail;	
@@ -124,6 +125,7 @@ void *perform_simple_output(void *arguments)
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
 				
+				//writes a random piece of data to memory at the beginning of yield cycle
 				if(yield_quantum == 1){
 					write = '0' + rand()%77;
 					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
@@ -139,7 +141,7 @@ void *perform_simple_output(void *arguments)
 				} 
 			if (yield_quantum == 1001){// if quantum is up 
 					yield_quantum = 0; //reset
-					
+					// reads 1 ch of memory and prints at the end of yield cycle
 					if(Mem_Mgr.Mem_Read(tcb->memhandle,&read)){
 						sprintf(buff," Reading from memory... \n    %c\n", read);
 						write_window(Win, buff); 
@@ -165,13 +167,15 @@ void *ui_loop(void *arguments)
 	WINDOW * logwin = tcb->logwin;
 	WINDOW * messwin = tcb->messwin;
 	WINDOW * memwin = tcb->memwin;
-	//char* input = tcb->input;
+	char* text= "This example shows the overloaded write/read function";
+	int textsize = strlen(text);
+	char* read = "reading didnt work";
 	char buff[256];
 	
 		while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
-			 // updates process table when thread gets cpu time
-				//sched.dump(1, pdumpwin);
+			 // updates process table when thread gets cpu time, removed for now
+			 //sched.dump(1, pdumpwin);
 			
 			switch(wgetch(conwin))
 		{
@@ -200,13 +204,15 @@ void *ui_loop(void *arguments)
 						write_window(logwin, " Task 3 was already dead... \n ");
 					}
 					break;
-			case 'c':					// CLEAR
+			case 'c':				// CLEAR and Coalesce
 				
 				sema_screen.down();
 				refresh(); 			// Clear the entire screen (in case it is corrupted)
 				wclear(conwin); 	// Clear the Console window
 				sema_screen.up();
-				Mem_Mgr.Mem_Coalesce(); // u suck
+					
+				Mem_Mgr.Mem_Coalesce(); 
+				
 				write_window(conwin, 1, 1, "Ultima # ");
 				break;
 			case 'd':
@@ -234,15 +240,23 @@ void *ui_loop(void *arguments)
 				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
 				write_window(logwin, buff);
 					
+				// overloaded read does not work
+				/*	
+				if(Mem_Mgr.Mem_Read(tcb->memhandle,9, 20, &read)){
+						sprintf(buff," Reading from memory... \n    %s\n", read);
+						write_window(logwin, buff); 
+					}
+				*/
 					
 				write_window(messwin, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");	
 				IPC.ipc_Message_Dump(messwin);
 				std::cin.get();
 				write_window(logwin, " Unpaused... \n");
 				break;
-			case 'h':					// HELP
+			case 'h':					// HELP and mem usage
 				
 				display_help(conwin);
+				
 				Mem_Mgr.Mem_Usage(memwin);
 				
 				break;
@@ -279,11 +293,16 @@ void *ui_loop(void *arguments)
 				write_window(messwin, buff);
 				sprintf(buff, " # of messages in all boxes = %d \n" , IPC.Message_Count());
 				write_window(messwin, buff);
+				
+				
+				Mem_Mgr.Mem_Write(tcb->memhandle, 9, textsize, text);
+					 
 				break;
 			case ERR:	// If wgetch() return ERR, that means no keys were pressed
 				if (tcb->kill_signal == 1){ // set to be killed
 					write_window(logwin, " UI window dying...\n");
 					Mem_Mgr.Mem_Free(tcb->memhandle);
+					// free this memory if thread is dying
 					tcb->state = 3;
 				} else {
 			//write_window(logwin, " NO INPUT, UI yielding...\n");

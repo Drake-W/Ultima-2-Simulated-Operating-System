@@ -8,8 +8,8 @@
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
-|  Last Updated:	3/18/2019
-|      Due Date: 	3/18/2019
+|  Last Updated:	4/08/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the main function that interacts with the scheduler, semaphore, queue, and window classes.
 |               Multiple curses windows and 3 pthreads are created which are then passed to other functions to handle. 

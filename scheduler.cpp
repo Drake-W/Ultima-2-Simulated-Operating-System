@@ -8,8 +8,8 @@
 |        Class: 	C435 - Operating Systems
 |   Instructor: 	Dr. Hakimzadeh
 | Date Created: 	2/16/2019
-| Last Updated:		3/18/2019
-|     Due Date: 	3/18/2019
+| Last Updated:		4/08/2019
+|     Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the definitions for the functions outlined in scheduler.h                     
 *==================================================================================*/
@@ -91,9 +91,8 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	
 	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
 	if (tcb->memhandle == -1){
-		// error getting memory
-		 //return -1; 
-		// return -1 will not start UI loop but doesnt say anything 
+		tcb->state = BLOCKED; // block if mem alloc fails
+		//will cause  seg fault
 	}
 	
 	
@@ -123,13 +122,10 @@ int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin
 	
 	// get memory
 	char buff[256];
-	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); //calling this causes the crash
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name);  // ask for 128 bits
 	if (tcb->memhandle == -1){
-		// error getting memory
-		//sprintf(buff, " UI THREAD COULD NOT GET MEMORY\n");
-		//write_window(logwin, buff);
-		// return -1; 
-		// return -1 will not start UI loop but doesnt say anything 
+		tcb->state = BLOCKED; // block if mem alloc fails
+		// will cause seg fault
 	}
 	
 	// create thread ui loop

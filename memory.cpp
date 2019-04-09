@@ -1,15 +1,15 @@
 /*==================================================================================|
 |    Assignment:	Ultima 2.0 Phase 3
 |     File Name:	memory.cpp
-|  Dependencies: 	
+|  Dependencies: 	memory.h semaphore.h cstring
 |       Authors: 	Drake Wood, James Giegerich
 |      Language: 	C++
 |      Compiler: 	G++
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
-|  Last Updated:	3/18/2019
-|        Due Date: 	3/18/2019
+|  Last Updated:	4/08/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the definitions for the functions outlined in memory.h                     
 *==================================================================================*/
@@ -17,7 +17,6 @@
 #include "memory.h"
 #include "semaphore.h"
 #include <cstring>
-
 
 extern semaphore sema_memory;
 extern semaphore sema_screen;
@@ -113,7 +112,6 @@ int mem_mgr::First_Fit(int size){ // given a desired size will return the first 
 			while (temp->linked){
 				temp = temp->next;
 				tempcount = tempcount + 128; // find the full size of the hole // temp->size should go here
-		
 			}
 		}
 		if (tempcount >= size){ // if the hole is large enough return the handle
@@ -121,12 +119,11 @@ int mem_mgr::First_Fit(int size){ // given a desired size will return the first 
 			return handle;
 		}
 		temp = temp->next; // check next node if needed. 
-		
 	}
 	sema_memory.up();
 	return -1;
 }
-//****************************not tested******************************
+
 int mem_mgr::Mem_Free(int memory_handle){// place #'s in the memory freed, return -1 if errors occur
 										// only use this on the first node/handle in a link
 sema_memory.down();
@@ -165,16 +162,21 @@ sema_memory.down();
 	
 }
 
-// does not move back to previous node if needed yet
+// does not move back to previous linked node
 int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
 	sema_memory.down();
 	MemNode* temp = this->head;
 	while (temp->handle != memory_handle){ // get us to the right node
 		temp = temp->next;
 	}
+	
+	while((temp->current_location > temp->limit) && (temp->linked > 0)){
+				temp = temp->next; // if the head is full but has a linked node then move to that
+			}
+	
 	if (temp->current_location > temp->base){
-		*ch = Mem_Core[temp->current_location -1]; // having an issue displaying the character after this is ran
-		temp->current_location = temp->current_location - 1;	
+		*ch = Mem_Core[temp->current_location -1]; // finds the most recent ch written 
+		temp->current_location = temp->current_location - 1;	// move current location
 	
 	}else{
 		sema_memory.up();
@@ -183,7 +185,7 @@ int mem_mgr::Mem_Read(int memory_handle, char *ch){// read a character from curr
 
 	sema_memory.up();
 	return 1;
-	}
+}
 
 			
 //does not check if the node is full and if it is linked to another so it can write more.
@@ -193,7 +195,11 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 	while(temp){
 		if (temp->handle == memory_handle){
 			
-			if (temp->current_location <= temp->limit){
+			while((temp->current_location > temp->limit) && (temp->linked > 0)){
+				temp = temp->next; // if the head is full but has a linked node then move to that
+			}
+			
+			if (temp->current_location <= temp->limit){ // if == to limit current location will end up 1 past limit
 				Mem_Core[temp->current_location] = ch;
 			
 				temp->current_location = temp->current_location + 1;
@@ -213,22 +219,20 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 } 
 			
 // overloaded multi-byte read and write
-//****************************not tested******************************
+//****************************not currently functioning-causes seg fault******************************
 int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
 	sema_memory.down();
 	int cl = 0; //current location for offset
 	MemNode* temp = this->head;
+	
 	while(temp){
 		if (temp->handle == memory_handle){
 			cl = temp->base + offset_from_beg;
 			
-			while ((cl <= temp->limit) && ( text_size > 0)){
-				//text = Mem_Core[cl];  // gotta figure out how this is going to work for char* to [array]
-				cl++;
-				text_size--;
-				// will need to add check for linked nodes
+			for (int i = 0; i < text_size; i++){
+				text[i] = Mem_Core[cl+i];
 			}
-sema_memory.up();
+			sema_memory.up();
 		return 1;
 
 		}
@@ -239,20 +243,18 @@ sema_memory.up();
 	sema_memory.up();
 	return -1;
 }
-//****************************not tested******************************
+
 int mem_mgr::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text){
 	sema_memory.down();
 	int cl = 0; //current location for offset
 	MemNode* temp = this->head;
+	
 	while(temp){
-		if (temp->handle == memory_handle){
+		if (temp->handle == memory_handle){ // find the right handle
 			cl = temp->base + offset_from_beg;
 			
-			while ((cl <= temp->limit) && ( text_size > 0)){
-				//Mem_Core[cl] = text; // gotta figure out how this is going to work for char* to [array]
-				cl++;
-				text_size--;
-				// will need to add check for linked nodes
+			for (int i = 0; i < text_size; i++){
+				Mem_Core[cl+i] = text[i];
 			}
 			sema_memory.up();
 		return 1;
@@ -294,12 +296,11 @@ int mem_mgr::Mem_Largest(){// return the size of the largest available memory se
 				tempcount = tempcount + 128; // temp->size should go here
 			}
 		
-		if (tempcount > counter){
-			counter = tempcount;
-		}
+			if (tempcount > counter){
+				counter = tempcount;
+			}
 		}
 		temp = temp->next;
-		
 	}
 	sema_memory.up();
 	return counter;
@@ -324,13 +325,12 @@ int mem_mgr::Mem_Smallest(){// return the size of the smallest available memory 
 		}
 		
 		temp = temp->next;
-		
 	}
 	sema_memory.up();
 	return counter;
 } 
 
-//****************************not tested******************************
+
 int mem_mgr::Mem_Coalesce(){ // combine two or more contiguous blocks of free space and place . dots in the coalesced memory.
 	sema_memory.down();
 	int array[9];
@@ -386,7 +386,7 @@ int mem_mgr::Mem_Usage(WINDOW * win){
 	
 	MemNode* temp = this->head;
 	char buff[256];
-	sprintf(buff, " Status | Mem Handle | Start Loc | End Loc | Size | Cur Loc | TID \n");
+	sprintf(buff, "  Status  | Mem Handle | Start Loc | End Loc | Size |  Cur Loc  |  TID  \n");
 	write_window(win,buff);
 	char * status;
 	const char * name;
@@ -395,7 +395,7 @@ int mem_mgr::Mem_Usage(WINDOW * win){
 	int status1;
 	while(temp){
 		start = temp->start;
-		if(start){
+		if(start == 1){
 			status1 = temp->status;
 			if (status1){
 				status = "Used";
@@ -408,7 +408,7 @@ int mem_mgr::Mem_Usage(WINDOW * win){
 			limit = temp->limit;
 			size = temp->size;
 			current_location = temp->current_location;
-			sprintf(buff, " %s \t\t%d \t%d   \t%d \t%d \t\t%d \t%s \n",status, handle, base, limit, size, current_location, name);
+			sprintf(buff, "  %s\t\t%d\t\t%d\t%d\t%d\t%d\t%s \n",status, handle, base, limit, size, current_location, name);
 			write_window(win,buff);
 		}
 		temp = temp->next;
