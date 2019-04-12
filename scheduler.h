@@ -9,7 +9,7 @@
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
 |  Last Updated:	3/18/2019
-|      Due Date: 	3/18/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: This is the header file which defines the class scheduler. There are 4 functions along with a
 |				constructor, deconstructor, and data structs. 
@@ -49,12 +49,14 @@ class scheduler {
 		int thread_results;			// Results
 		int state;
 		int pause_state;
+		int memhandle; 				// Memory handle
 		Queue<ipc::Message*> mailbox;
 		WINDOW *pdumpwin; // these are for the main input
 		WINDOW *sdumpwin;
 		WINDOW *conwin;
 		WINDOW *logwin;
 		WINDOW *messwin;
+		WINDOW *memwin;
 		char *input;
 	};
 	
@@ -63,7 +65,7 @@ class scheduler {
 	int task_counter;
 	Queue <TCB*>process_table;
 	int create_task(char* name, WINDOW *win, WINDOW *pdumpwin);  	// Create appropriate data structures and calls coroutine()
-	int create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin);
+	int create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin, WINDOW * memwin);
 	bool destroy_task(int tasknumber);  				// to kill a task (Set its status to DEAD)
 	void yield();  		  											// Strict round robin process switch. 
 	void dump(int level, WINDOW * win); 				// Debugging function with level indicating the verbosity of the dump 

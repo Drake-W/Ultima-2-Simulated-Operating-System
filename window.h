@@ -9,7 +9,7 @@
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
 |  Last Updated:	3/18/2019
-|      Due Date: 	3/18/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: This is the header file which defines the class window. There are 5 functions.
 |				-create_window draws a new window at a specified size and position, it also turns on scrolling. 

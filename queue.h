@@ -9,7 +9,7 @@
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
 |  Last Updated:	3/18/2019
-|      Due Date: 	3/18/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: This is the header file which defines the queue template class used by the semaphore
 |				and scheduler classes. 

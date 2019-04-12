@@ -8,8 +8,8 @@
 |        Class: 	C435 - Operating Systems
 |   Instructor: 	Dr. Hakimzadeh
 | Date Created: 	2/16/2019
-| Last Updated:		3/18/2019
-|     Due Date: 	3/18/2019
+| Last Updated:		4/08/2019
+|     Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the definitions for the functions outlined in scheduler.h                     
 *==================================================================================*/
@@ -17,12 +17,14 @@
 #include "semaphore.h"
 #include "scheduler.h"
 #include "window.h"
+#include "memory.h"
 
 #define BLOCKED 0
 #define READY 1
 #define RUNNING 2
 #define DEAD 3
 
+extern mem_mgr Mem_Mgr;
 extern semaphore sema_screen;
 extern semaphore sema_ptable;
 
@@ -33,6 +35,7 @@ void scheduler::dump(int level, WINDOW * win) {
 	write_window(win, 1, 5, "      PROCESS TABLE DUMP \n -------------------------------------\n");
 	char buff[256];
 	int procnum1;
+	int memhandle;
 	int size = process_table.qSize();
 	
 	if (size == 0)					// Check if anything is in the queue
@@ -42,18 +45,20 @@ void scheduler::dump(int level, WINDOW * win) {
 		TCB *tcb = process_table.Dequeue();
 		process_table.Enqueue(tcb);
 		procnum1 = tcb->thread_no;
+		memhandle = tcb->memhandle;
+		
 	
 		if ( tcb->state == READY){
-			sprintf(buff, " Task #%d status Ready\n", procnum1);
+			sprintf(buff, " Task #%d status: Ready\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}
 		else if (tcb->state == RUNNING){
-			sprintf(buff, " Task #%d status Running\n", procnum1);
+			sprintf(buff, " Task #%d status: Running\tMemory Handle: %d\n", procnum1, memhandle);
 		} 
 		else if (tcb->state == BLOCKED){
-			sprintf(buff, " Task #%d status Blocked\n", procnum1);
+			sprintf(buff, " Task #%d status: Blocked\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}
 		else if (tcb->state == DEAD){
-			sprintf(buff, " Task #%d status Dead\n", procnum1);
+			sprintf(buff, " Task #%d status: Dead\t\tMemory Handle: %d\n", procnum1, memhandle);
 		}// end else
 		write_window(win, buff);
 	} // end for
@@ -84,6 +89,13 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	tcb->name = name;
 	tcb->state = READY;
 	
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name); 
+	if (tcb->memhandle == -1){
+		tcb->state = BLOCKED; // block if mem alloc fails
+		//will cause  seg fault
+	}
+	
+	
 	// create thread running simple output in its own window
 	result_code = pthread_create(&tcb->thread, NULL, perform_simple_output, tcb);
 	assert(!result_code); 			// if there is any problems with result code. display it and end program.
@@ -93,7 +105,7 @@ int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
 	return 0;
 } // end of create_task
 
-int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin){
+int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin, WINDOW * memwin){
 	int result_code;
 	TCB * tcb = new TCB;
 	this->task_counter++;
@@ -102,10 +114,19 @@ int scheduler::create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin
 	tcb->conwin = conwin;
 	tcb->logwin = logwin;
 	tcb->messwin = messwin;
+	tcb->memwin = memwin;
 	
 	tcb->thread_no = this->task_counter;
 	tcb->name = (char*) "UI Thread";
 	tcb->state = READY;
+	
+	// get memory
+	char buff[256];
+	tcb->memhandle = Mem_Mgr.MemAlloc(128, tcb->name);  // ask for 128 bits
+	if (tcb->memhandle == -1){
+		tcb->state = BLOCKED; // block if mem alloc fails
+		// will cause seg fault
+	}
 	
 	// create thread ui loop
 	result_code = pthread_create(&tcb->thread, NULL, ui_loop, tcb);

@@ -8,8 +8,8 @@
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	2/16/2019
-|  Last Updated:	3/18/2019
-|        Due Date: 	3/18/2019
+|  Last Updated:	4/08/2019
+|      Due Date: 	4/08/2019
 |==================================================================================|
 |  Description: Contains the definitions for the functions outlined in window.h                     
 *==================================================================================*/
@@ -18,7 +18,8 @@
 #include "semaphore.h"
 #include "ipc.h"
 #include "time.h"
-
+#include "memory.h"
+#include <cstring>
 
 extern semaphore sema_screen;
 extern semaphore sema_t1mail;	
@@ -28,6 +29,7 @@ extern semaphore sema_t4mail;
 extern semaphore sema_ptable;	
 extern scheduler sched;
 extern ipc IPC;
+extern mem_mgr Mem_Mgr;
 
 WINDOW *create_window(int height, int width, int starty, int startx)
 {
@@ -88,13 +90,18 @@ void *perform_simple_output(void *arguments)
 	int yield_quantum = 0;
 	char buff[256];
 	time_t messagetime;
+	char write;
+	char read = '=';
+	unsigned seed= time(0);
+    srand(seed);
+	
 	
 
 		
 	while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
 			if(yield_quantum == 0){ // updates process table when thread gets cpu time
-				sched.dump(1, pdumpwin);
+				//sched.dump(1, pdumpwin);
 			}
 			
 			if (CPU_Quantum == 0) { // First thing a task does is send messages
@@ -117,6 +124,14 @@ void *perform_simple_output(void *arguments)
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
+				
+				//writes a random piece of data to memory at the beginning of yield cycle
+				if(yield_quantum == 1){
+					write = '0' + rand()%77;
+					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
+				}
+
+				
 			}
 			yield_quantum++;
 			if (tcb->kill_signal == 1){ // set to be killed
@@ -126,13 +141,19 @@ void *perform_simple_output(void *arguments)
 				} 
 			if (yield_quantum == 1001){// if quantum is up 
 					yield_quantum = 0; //reset
+					// reads 1 ch of memory and prints at the end of yield cycle
+					if(Mem_Mgr.Mem_Read(tcb->memhandle,&read)){
+						sprintf(buff," Reading from memory... \n    %c\n", read);
+						write_window(Win, buff); 
+					}
 					write_window(Win, " I'm yielding...\n"); 
 					sched.yield();
 					//sleep(1);
 				}
 			}
+			
 		} // end while
-	
+		Mem_Mgr.Mem_Free(tcb->memhandle);
 	return 0;
 }
 
@@ -145,13 +166,16 @@ void *ui_loop(void *arguments)
 	WINDOW * conwin = tcb->conwin;
 	WINDOW * logwin = tcb->logwin;
 	WINDOW * messwin = tcb->messwin;
-	//char* input = tcb->input;
+	WINDOW * memwin = tcb->memwin;
+	char* text= "This example shows the overloaded write/read function";
+	int textsize = strlen(text);
+	char* read = "reading didnt work";
 	char buff[256];
 	
 		while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
-			 // updates process table when thread gets cpu time
-				sched.dump(1, pdumpwin);
+			 // updates process table when thread gets cpu time, removed for now
+			 //sched.dump(1, pdumpwin);
 			
 			switch(wgetch(conwin))
 		{
@@ -180,12 +204,14 @@ void *ui_loop(void *arguments)
 						write_window(logwin, " Task 3 was already dead... \n ");
 					}
 					break;
-			case 'c':					// CLEAR
+			case 'c':				// CLEAR and Coalesce
 				
 				sema_screen.down();
 				refresh(); 			// Clear the entire screen (in case it is corrupted)
 				wclear(conwin); 	// Clear the Console window
 				sema_screen.up();
+					
+				Mem_Mgr.Mem_Coalesce(); 
 				
 				write_window(conwin, 1, 1, "Ultima # ");
 				break;
@@ -209,21 +235,36 @@ void *ui_loop(void *arguments)
 				sema_t4mail.dump(1, sdumpwin);
 				sema_ptable.dump(1, sdumpwin);
 					
+				//core dump	
+				Mem_Mgr.Core_Dump(memwin);	
+				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
+				write_window(logwin, buff);
+					
+				// overloaded read does not work
+				/*	
+				if(Mem_Mgr.Mem_Read(tcb->memhandle,9, 20, &read)){
+						sprintf(buff," Reading from memory... \n    %s\n", read);
+						write_window(logwin, buff); 
+					}
+				*/
+					
 				write_window(messwin, 1, 5, "	     MESSAGING DUMP \n -------------------------------------\n");	
 				IPC.ipc_Message_Dump(messwin);
 				std::cin.get();
 				write_window(logwin, " Unpaused... \n");
 				break;
-			case 'h':					// HELP
+			case 'h':					// HELP and mem usage
 				
 				display_help(conwin);
-
+				
+				Mem_Mgr.Mem_Usage(memwin);
+				
 				break;
 			case 'g':
 				sched.garbage_collect();
 				write_window(conwin, "g \n Ultima # ");
 				write_window(logwin, " Garbage collect\n"); 
-				sched.yield();
+				//sched.yield();
 				break;
 			case 'q':					// QUIT
 				write_window(logwin," Quiting the main program....\n" );
@@ -252,10 +293,16 @@ void *ui_loop(void *arguments)
 				write_window(messwin, buff);
 				sprintf(buff, " # of messages in all boxes = %d \n" , IPC.Message_Count());
 				write_window(messwin, buff);
+				
+				
+				Mem_Mgr.Mem_Write(tcb->memhandle, 9, textsize, text);
+					 
 				break;
 			case ERR:	// If wgetch() return ERR, that means no keys were pressed
 				if (tcb->kill_signal == 1){ // set to be killed
-					write_window(logwin, " UI window dying...\n"); 
+					write_window(logwin, " UI window dying...\n");
+					Mem_Mgr.Mem_Free(tcb->memhandle);
+					// free this memory if thread is dying
 					tcb->state = 3;
 				} else {
 			//write_window(logwin, " NO INPUT, UI yielding...\n");
