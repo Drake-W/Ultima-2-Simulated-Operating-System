@@ -17,11 +17,13 @@
 #ifndef UFS_H
 #define UFS_H
 
+// Do we want to make this a struct inside of class ufs like we did for memory????
+// seems like a better idea
 class i_node{
 	char filename[8];			//filenames can be up to 8 chars long. (including the null byte)
 	int owner_task_id;			//owners task_id (this should be user-id but for now we can use task id)
 	int starting_block;			// starting block where the file is written.
-	int size;				//file size indiacates the actual file size not the number of clocks used by this file
+	int size;					//file size indiacates the actual file size not the number of clocks used by this file
 	char permission[4];			//rwrw(owner, others) feel free to implement this as a bit pattern
 	unsigned int blocks[4];		//array of integers (block #) belonging to this file (max file size = 4x128 bytes) 
 								//you may also try to use a bitmap to represent the used blocks, for example a 16 bit 
@@ -46,13 +48,17 @@ class ufs{
 	int next_file_handle; // ufs_create_file gets the next handle
 	char initialization_char;
 	
-	//filesystem operations
+//------------------------------------------------------------------------------
+//Filesystem operations
+//------------------------------------------------------------------------------
 	voic ifs(fs_name,noBlocks,blockSize,init_char); // only used by superuser (you) to create the filesystem, 
 													// format the virtual disk (initialize with 0x5E or "^"), also wipe
 													// the i nodes
 	void format();									// format the current file system
 	
-	//file operations
+//------------------------------------------------------------------------------
+//File operations
+//------------------------------------------------------------------------------
 	int Open(T_id,file_handle, filenm, mode);		/* file handle must be valid and belong to t-id or file name should be
 													set for others. mode = R or W returns a unique integer file_id or -1
 													for an error. an error could be no such file name is created in teh system
@@ -65,7 +71,9 @@ class ufs{
 	// optional:
 	//multibyte read and  write
 	
-	//Directory operations:
+//------------------------------------------------------------------------------
+//Directory operations
+//------------------------------------------------------------------------------
 	int Create_file(T-id, filenm, file_size, permission);
 	int Del_file(Task_id, file_name);		// check the files ownership, delete the content of the file from datablocks
 											// by writing $'s in it, then delete the file from the inode table
