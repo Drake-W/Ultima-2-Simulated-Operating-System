@@ -20,10 +20,17 @@
 //Filesystem operations
 //------------------------------------------------------------------------------
 
-void ufs::ifs(fs_name,noBlocks,blockSize,init_char) // only used by superuser (you) to create the filesystem, 
-{													// format the virtual disk (initialize with 0x5E or "^"), also wipe
-													// the i nodes
-		
+void ufs::ufs(string name, int noBlocks, int blockSize, char init_char) // only used by superuser (you) to create the filesystem, 
+{														// format the virtual disk (initialize with 0x5E or "^"), also wipe
+	i_node inode1;										// the i nodes
+	i_node inode2;
+	i_node inode3;
+	i_node inode4;
+	
+	fs_name = name;										
+	fs_number_of_blocks = noBlocks;
+	fs_block_size = blockSize;
+	initialization_char = init_char;
 }
 													
 void ufs::format()									// format the current file system
