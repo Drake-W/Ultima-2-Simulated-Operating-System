@@ -174,7 +174,7 @@ void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme a
 	write_window(win, buff);
 	i_node* temp = this->head;
 	while (temp != NULL){
-		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permissions[0],temp->permissions[1],temp->permissions[2],temp->permissions[3]);
+		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
 		write_window(win, buff);
 		temp = temp->next;
 	}
@@ -188,7 +188,7 @@ void ufs::Dir(int Task_id, WINDOW * win)						// overloaded method. only show th
 	while (temp->owner_task_id != Task_id){ // get us to the right node
 		temp = temp->next;
 	}
-		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permissions[0],temp->permissions[1],temp->permissions[2],temp->permissions[3]);
+		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
 		write_window(win, buff);
 		temp = temp->next;
 	
