@@ -9,8 +9,8 @@ CXXFLAGS = -Wall -g
 
 # Targets needed to bring the executable up to date
 
-main: main.o scheduler.o semaphore.o window.o ipc.o memory.o
-	$(CXX) $(CXXFLAGS) -o main main.o scheduler.o semaphore.o window.o ipc.o memory.o $(LINKS)
+main: main.o scheduler.o semaphore.o window.o ipc.o memory.o ufs.o
+	$(CXX) $(CXXFLAGS) -o main main.o scheduler.o semaphore.o window.o ipc.o memory.o ufs.o $(LINKS)
 	
 main.o: main.cpp scheduler.h semaphore.h queue.h window.h
 	$(CXX) $(CXXFLAGS) -c main.cpp $(LINKS)
@@ -29,6 +29,9 @@ ipc.o: ipc.h ipc.cpp scheduler.h queue.h window.h
 
 memory.o: memory.h memory.cpp semaphore.h window.h
 	$(CXX) $(CXXFLAGS) -c memory.cpp $(LINKS)
-		
+
+ufs.o: ufs.h ufs.cpp semaphore.h window.h
+	$(CXX) $(CXXFLAGS) -c ufs.cpp $(LINKS)
+
 clean:
 	rm *.o

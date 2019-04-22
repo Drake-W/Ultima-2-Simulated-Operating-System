@@ -46,7 +46,7 @@ void mem_mgr::create_node(int value){
 	}else{
 		temp->linked = 0; // last node wont have anything linked to it
 	}
-	if (value = 1){
+	if (value == 1){
 		temp->start = 1; // first node will start the linked nodes for the unused space
 	}else{
 		temp->start = 0; // // other nodes will not be a starting point
