@@ -17,7 +17,7 @@
 #include "ufs.h"
 #include "semaphore.h"
 
-//extern semaphore sema_file;
+extern semaphore sema_files;
 
 //------------------------------------------------------------------------------
 //Filesystem operations
@@ -169,10 +169,28 @@ int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4])	
 	
 void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme and permissions
 { 
-	
+	char buff[256];
+	sprintf(buff, "file name\owner id\tpermissions rwrw");
+	write_window(win, buff);
+	i_node* temp = this->head;
+	while (temp != NULL){
+		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permissions[0],temp->permissions[1],temp->permissions[2],temp->permissions[3]);
+		write_window(win, buff);
+		temp = temp->next;
+	}
 }
 void ufs::Dir(int Task_id, WINDOW * win)						// overloaded method. only show the file belonging to T-id
 {
+	char buff[256];
+	sprintf(buff, "file name\owner id\tpermissions rwrw");
+	write_window(win, buff);
+	i_node* temp = this->head;
+	while (temp->owner_task_id != Task_id){ // get us to the right node
+		temp = temp->next;
+	}
+		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permissions[0],temp->permissions[1],temp->permissions[2],temp->permissions[3]);
+		write_window(win, buff);
+		temp = temp->next;
 	
 }
 void ufs::dump( WINDOW * win)							// dump the ufs inodes as well as the ufs data blocks

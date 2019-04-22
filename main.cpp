@@ -43,11 +43,12 @@ semaphore sema_t3mail(1, (char *)"t3mail");
 semaphore sema_t4mail(1, (char *)"t4mail");	
 semaphore sema_ptable(1, (char *)"ptable");	
 semaphore sema_memory(1, (char *)"memory");
+semaphore sema_files(1, (char *)"Filesystem");
 scheduler sched; //creates scheduler
 ipc IPC; // creates ipc
 mem_mgr Mem_Mgr(1,1); // creates mem manager - size, initial value - dont do anything right now
-ufs superuser("superuser", 16, 128, '^');
-
+ufs superuser("superuser", 16, 128, '^'); // creates file system for the super user
+										//16 blocks, 128 byte block size, ^ initialization character
 //------------------------------------------------------------------------------
 //------------------------------MAIN--------------------------------------------
 //------------------------------------------------------------------------------
