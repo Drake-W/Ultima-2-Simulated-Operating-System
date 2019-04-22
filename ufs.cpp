@@ -30,7 +30,7 @@ ufs::ufs(char* name, int noBlocks, int blockSize, char init_char) // only used b
 	filef.seekp(0);
 	int size = blockSize*noBlocks;
 	for (int i = 0; i < size; i++)
-		filef << init_char;
+		filef << "^";
 	filef.close();
 	
 	fs_name = name;										
@@ -53,19 +53,18 @@ void ufs::format()									// format the current file system
 //File operations
 //------------------------------------------------------------------------------
 
-int ufs::Open(int T_id, int file_handle, char* filenm, char* mode)		//file handle must be valid and belong to t-id or file name should be
+int ufs::Open(int T_id, char* filenm, char* mode)		//file handle must be valid and belong to t-id or file name should be
 {	
 													//set for others. mode = R or W returns a unique integer file_id or -1
 													//for an error. an error could be no such file name is created in teh system
 													//or such a file is not owned by this task_id or the permission set for this
 													//file do not allow it to be open.
 	i_node* temp = this->head;
-	
-	while ((temp->owner_task_id != T_id) || (temp->filename != filenm)){ // get us to the right node
+	while (temp->owner_task_id != T_id){ // get us to the right node
 		temp = temp->next;
-	}												
-	// check permissions and it it exists
+	}		
 	
+	// check permissions and it it exists
 	return 1;
 }
 
@@ -74,31 +73,39 @@ int ufs::Close(int T_id, int file_id)						// close the file, returns a -1 if an
 	//sema.up()?
 }
 int ufs::Read_Char(int T_id, char* file_name, char *ch) 	// read a char from file, return -1 if EOF keep track of the current location
-{
+{	
+	char buff[256];
 	i_node* temp = this->head;
-	
-	while ((temp->owner_task_id != T_id) || (temp->filename != file_name)){ // get us to the right node
+
+	while (temp->owner_task_id != T_id){ // get us to the right node
 		temp = temp->next;
 	}
-	fstream filef("filef.txt", ios::in);
-	filef.seekp(temp->currentlocation);
-	filef >> ch;
+	fstream filef("filef.txt", ios:: out | ios::in);
+	
+	filef.seekg(temp->currentlocation);
+	
+	filef.get(*ch);
+	
 	temp->currentlocation--;
+	
 	filef.close();
 	
 	return 1;
 }
 int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to the file, return -1 if error. keep track of the current file location. 
 {
+	
 	i_node* temp = this->head;
 	
-	while ((temp->owner_task_id != T_id) || (temp->filename != file_name)){ // get us to the right node
+	
+	while (temp->owner_task_id != T_id){ // get us to the right node
 		temp = temp->next;
 	}
-	fstream filef("filef.txt", ios::out);
+	
+	fstream filef("filef.txt", ios::out | ios::in);
 	filef.seekp(temp->currentlocation);
-	filef << ch;
-	temp->currentlocation++;
+	filef.put(*ch);
+	temp->currentlocation = temp->currentlocation + 1;
 	filef.close();
 	return 1;
 }
@@ -111,8 +118,7 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 {
 	
 	i_node * temp = new i_node;
-	//temp->filename = filenm;
-	//wrong type 
+	sprintf(temp->filename, "%s", filenm);
 	temp->owner_task_id = T_id;
 	temp->starting_block = T_id;
 	temp->size = file_size;
@@ -124,7 +130,7 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 		temp->blocks[i] = 0;
 		i++;
 	}
-	temp->currentlocation =  (T_id * 128) - 128;
+	temp->currentlocation = (T_id * 128) - 128;
 	
 	
 	
@@ -159,7 +165,7 @@ int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4])	
 {
 	i_node* temp = this->head;
 	
-	while ((temp->owner_task_id != Task_id) || (temp->filename != file_name)){ // get us to the right node
+	while (temp->owner_task_id != Task_id){ // get us to the right node
 		temp = temp->next;
 	}
 	for (int i =0; i < 4; i++){
@@ -170,11 +176,11 @@ int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4])	
 void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme and permissions
 { 
 	char buff[256];
-	sprintf(buff, "file name\owner id\tpermissions rwrw");
+	sprintf(buff, " file name\towner id\tpermissions rwrw\n");
 	write_window(win, buff);
 	i_node* temp = this->head;
 	while (temp != NULL){
-		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
+		sprintf(buff, " %s\t\t%d\t%d%d%d%d\n", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
 		write_window(win, buff);
 		temp = temp->next;
 	}
@@ -182,25 +188,31 @@ void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme a
 void ufs::Dir(int Task_id, WINDOW * win)						// overloaded method. only show the file belonging to T-id
 {
 	char buff[256];
-	sprintf(buff, "file name\owner id\tpermissions rwrw");
+	sprintf(buff, "file name\towner id\tpermissions rwrw\n");
 	write_window(win, buff);
 	i_node* temp = this->head;
 	while (temp->owner_task_id != Task_id){ // get us to the right node
 		temp = temp->next;
 	}
-		sprintf(buff, "%c\t%d\t%d%d%d%d", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
+		sprintf(buff, " %s\t\t%d\t%d%d%d%d\n", temp->filename, temp->owner_task_id, temp->permission[0],temp->permission[1],temp->permission[2],temp->permission[3]);
 		write_window(win, buff);
 		temp = temp->next;
 	
 }
 void ufs::dump( WINDOW * win)							// dump the ufs inodes as well as the ufs data blocks
 {
-	/*
+	char ch;
+	char buff[9001];
 	fstream filef("filef.txt", ios::in);
-	filef.seekp(temp->currentlocation);
-	filef >> ch;
-	temp->currentlocation--;
+	filef.seekp(0);
+	for (int i = 0; i < 2048; i++){
+		filef >> buff[i];
+		//sprintf(buff, "%c", ch);
+	}
+	//sprintf(buff, "\n");
+	write_window(win, buff);
+	write_window(win, " printed message");
 	filef.close();
-	*/
+	
 }
 	

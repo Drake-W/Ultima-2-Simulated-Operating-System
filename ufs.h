@@ -69,7 +69,7 @@ class ufs{
 //------------------------------------------------------------------------------
 //File operations
 //------------------------------------------------------------------------------
-	int Open(int T_id,int file_handle,char* filenm,char* mode);		/* file handle must be valid and belong to t-id or file name should be
+	int Open(int T_id,char* filenm,char* mode);		/* file handle must be valid and belong to t-id or file name should be
 													set for others. mode = R or W returns a unique integer file_id or -1
 													for an error. an error could be no such file name is created in teh system
 													or such a file is not owned by this task_id or the permission set for this

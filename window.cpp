@@ -20,6 +20,7 @@
 #include "time.h"
 #include "memory.h"
 #include <cstring>
+#include "ufs.h"
 
 extern semaphore sema_screen;
 extern semaphore sema_t1mail;	
@@ -30,6 +31,7 @@ extern semaphore sema_ptable;
 extern scheduler sched;
 extern ipc IPC;
 extern mem_mgr Mem_Mgr;
+extern ufs superuser;
 
 WINDOW *create_window(int height, int width, int starty, int startx)
 {
@@ -253,6 +255,31 @@ void *ui_loop(void *arguments)
 				std::cin.get();
 				write_window(logwin, " Unpaused... \n");
 				break;
+			case 'f':
+			{
+				//create file, read file, dumps, testcase
+				write_window(conwin, "f \n Ultima # ");
+				int permission[4] = {1,1,0,0};
+				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, permission);
+				
+				superuser.Dir(memwin);
+				superuser.Open(4,(char*)"uifile",(char*)"w");
+					//file open
+				
+				superuser.Write_Char(4, (char*)"uifile", (char*)"x");
+				superuser.dump(messwin);
+				char y;
+				superuser.Read_Char(4, (char*)"uifile", &y);
+				
+				sprintf(buff, " read: %c\n", y);
+				int perm[4] = { 1, 1, 1, 1 };
+				superuser.Change_Permission(4, (char*)"uifile", perm);
+				
+				
+				write_window(logwin, buff);
+				
+				break;
+			}
 			case 'h':					// HELP and mem usage
 				
 				display_help(conwin);
