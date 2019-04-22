@@ -30,7 +30,7 @@ ufs::ufs(char* name, int noBlocks, int blockSize, char init_char) // only used b
 	filef.seekp(0);
 	int size = blockSize*noBlocks;
 	for (int i = 0; i < size; i++)
-		filef << "^";
+		filef << init_char;
 	filef.close();
 	
 	fs_name = name;										
@@ -53,17 +53,18 @@ void ufs::format()									// format the current file system
 //File operations
 //------------------------------------------------------------------------------
 
-int ufs::Open(int T_id, char* filenm, char* mode)		//file handle must be valid and belong to t-id or file name should be
+int ufs::Open(int T_id, char* filenm, char* mode, WINDOW * Win)		//file handle must be valid and belong to t-id or file name should be
 {	
 													//set for others. mode = R or W returns a unique integer file_id or -1
 													//for an error. an error could be no such file name is created in teh system
 													//or such a file is not owned by this task_id or the permission set for this
 													//file do not allow it to be open.
 	i_node* temp = this->head;
+	write_window(Win, " Line 63\n");
 	while (temp->owner_task_id != T_id){ // get us to the right node
 		temp = temp->next;
 	}		
-	
+	write_window(Win, " Line 67\n");
 	// check permissions and it it exists
 	return 1;
 }
@@ -103,7 +104,7 @@ int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to th
 	}
 	
 	fstream filef("filef.txt", ios::out | ios::in);
-	filef.seekp(temp->currentlocation);
+	filef.seekp(10);
 	filef.put(*ch);
 	temp->currentlocation = temp->currentlocation + 1;
 	filef.close();
@@ -114,14 +115,20 @@ int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to th
 //Directory operations
 //------------------------------------------------------------------------------
 
-int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
+int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4], WINDOW * Win)
 {
+	fstream inodef("inodef.txt", ios::out | ios::in);
+	/*inodef.read((char*)&temp->owner_task_id, 4);
+	inodef.read((char*)&temp->starting_block, 4);
+	inodef.read((char*)&temp->size, 4);*/
 	
 	i_node * temp = new i_node;
+	
 	sprintf(temp->filename, "%s", filenm);
 	temp->owner_task_id = T_id;
 	temp->starting_block = T_id;
 	temp->size = file_size;
+	
 	for(int i = 0; i < 4; i++){
 		temp->permission[i] = permission[i];
 	}
@@ -133,6 +140,17 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 	temp->currentlocation = (T_id * 128) - 128;
 	
 	
+	inodef.seekp(temp->currentlocation);
+	inodef << filenm;
+	inodef.write((char*)&temp->owner_task_id, 4);
+	inodef.write((char*)&temp->starting_block, 4);
+	inodef.write((char*)&temp->size, 4);
+	inodef.write((char*)&temp->permission, 4);
+	inodef.write((char*)&temp->blocks, 4);
+	
+	
+	inodef.close();
+	
 	
 	if (head == NULL){
 		head = temp;
@@ -143,6 +161,9 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 		tail->next = temp;
 		tail = temp;
 	}
+	
+	
+	
 }
 int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, delete the content of the file from datablocks
 {			
@@ -215,4 +236,37 @@ void ufs::dump( WINDOW * win)							// dump the ufs inodes as well as the ufs da
 	filef.close();
 	
 }
+
+ufs::i_node ufs::Write_Node(int index, i_node node){
+	fstream inodef("inodef.txt", ios::in | ios::out);
 	
+	inodef.seekp(index*40);
+	inodef.write((char*)&node.filename, 8);
+	inodef.write((char*)&node.owner_task_id, 4);
+	inodef.write((char*)&node.starting_block, 4);
+	inodef.write((char*)&node.size, 4);
+	inodef.write((char*)&node.permission, 4);
+	inodef.write((char*)&node.blocks, 4);
+	
+	inodef.close();
+	
+	return node;	
+}
+
+ufs::i_node ufs::Read_inode(int index){
+	fstream inodef("inodef.txt", ios::in | ios::out);
+	
+	i_node temp;
+	inodef.seekp(index*40);
+	
+	inodef.read((char*)&temp.filename, 8);
+	temp.filename[7] = '\0';
+	inodef.read((char*)&temp.owner_task_id, 4);
+	inodef.read((char*)&temp.starting_block, 4);
+	inodef.read((char*)&temp.size, 4);
+	inodef.read((char*)&temp.permission, 4);
+	inodef.read((char*)&temp.blocks, 4);
+	
+	inodef.close();
+	return temp;
+}

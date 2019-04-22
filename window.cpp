@@ -23,6 +23,7 @@
 #include "ufs.h"
 
 extern semaphore sema_screen;
+extern semaphore sema_files;
 extern semaphore sema_t1mail;	
 extern semaphore sema_t2mail;	
 extern semaphore sema_t3mail;	
@@ -75,7 +76,7 @@ void display_help(WINDOW * Win)
 	write_window(Win, 3, 1, "3: Kill Task 3");
 	write_window(Win, 4, 1, "c: Clear Screen");
 	write_window(Win, 5, 1, "d: Pause + Dump");
-	write_window(Win, 6, 1, "h: Help Screen");
+	write_window(Win, 6, 1, "f: Filesystem Methods");
 	write_window(Win, 7, 1, "q: Quit");
 	write_window(Win, 8, 1, "g: Garbage Collect");
 	write_window(Win, 9, 1, "z: Message testing");
@@ -121,8 +122,15 @@ void *perform_simple_output(void *arguments)
 					}
 				}
 			}
-
-		
+			if (CPU_Quantum == 0){
+				sprintf(buff, " creating a file\n");
+				write_window(Win, buff);
+				int permission[4] = {1,1,0,0};
+				// sema_files.down();
+				superuser.Create_file(tcb->thread_no, (char*)"tfile", 120, permission, tcb->logwin);
+				// sema_files.up();
+			}
+			
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
@@ -259,23 +267,35 @@ void *ui_loop(void *arguments)
 			{
 				//create file, read file, dumps, testcase
 				write_window(conwin, "f \n Ultima # ");
-				int permission[4] = {1,1,0,0};
-				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, permission);
 				
+				write_window(logwin, " line 268\n" );
 				superuser.Dir(memwin);
-				superuser.Open(4,(char*)"uifile",(char*)"w");
+				
+				
+				int taskn = 1;
+				write_window(logwin, " line 271\n" );
+				superuser.Open(taskn,(char*)"uifile",(char*)"w", logwin);
 					//file open
 				
-				superuser.Write_Char(4, (char*)"uifile", (char*)"x");
+				write_window(logwin, " line 275\n" );
+				superuser.Write_Char(taskn, (char*)"uifile", (char*)"x");
+				
+				write_window(logwin, " line 278\n" );
+				
 				superuser.dump(messwin);
 				char y;
-				superuser.Read_Char(4, (char*)"uifile", &y);
+				
+				write_window(logwin, " line 283\n" );
+				superuser.Read_Char(taskn, (char*)"uifile", &y);
 				
 				sprintf(buff, " read: %c\n", y);
 				int perm[4] = { 1, 1, 1, 1 };
-				superuser.Change_Permission(4, (char*)"uifile", perm);
+				write_window(logwin, " line 288\n" );
+				superuser.Change_Permission(taskn, (char*)"uifile", perm);
+				superuser.Change_Permission(++taskn, (char*)"uifile", perm);
+				superuser.Change_Permission(++taskn, (char*)"uifile", perm);
 				
-				
+				write_window(logwin, " line 291\n");
 				write_window(logwin, buff);
 				
 				break;

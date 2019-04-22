@@ -25,7 +25,6 @@
 using namespace std;
 class ufs{
 	
-	
 	struct i_node{
 		char filename[8] = "NULL";								//filenames can be up to 8 chars long. (including the null byte)
 		int owner_task_id;								//owners task_id (this should be user-id but for now we can use task id)
@@ -69,7 +68,7 @@ class ufs{
 //------------------------------------------------------------------------------
 //File operations
 //------------------------------------------------------------------------------
-	int Open(int T_id,char* filenm,char* mode);		/* file handle must be valid and belong to t-id or file name should be
+	int Open(int T_id,char* filenm,char* mode, WINDOW * Win);		/* file handle must be valid and belong to t-id or file name should be
 													set for others. mode = R or W returns a unique integer file_id or -1
 													for an error. an error could be no such file name is created in teh system
 													or such a file is not owned by this task_id or the permission set for this
@@ -78,13 +77,16 @@ class ufs{
 	int Read_Char(int T_id,char* file_name, char *ch); 	// read a char from file, return -1 if EOF keep track of the current location
 	int Write_Char(int T_id,char* file_name, char *ch); 	// write a  char to the file, return -1 if error. keep track of the current file location. 
 	
+	
+	i_node Read_inode(int index);
+	i_node Write_Node(int index, i_node node);
 	// optional:
 	//multibyte read and  write
 	
 //------------------------------------------------------------------------------
 //Directory operations
 //------------------------------------------------------------------------------
-	int Create_file(int T_id, char* filenm, int file_size, int permission[4]);
+	int Create_file(int T_id, char* filenm, int file_size, int permission[4], WINDOW * Win);
 	int Del_file(int Task_id,char* file_name);		// check the files ownership, delete the content of the file from datablocks
 											// by writing $'s in it, then delete the file from the inode table
 	int Change_Permission(int Task_id,char* file_name,int new_permission[4]);	// rwrw only the files owner can change the permission on the file
