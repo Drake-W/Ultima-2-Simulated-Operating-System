@@ -60,6 +60,7 @@ class ufs{
 //------------------------------------------------------------------------------
 //Filesystem operations
 //------------------------------------------------------------------------------
+	public:
 	ufs(char* fs_name,int noBlocks,int blockSize,char init_char); // only used by superuser (you) to create the filesystem, 
 													// format the virtual disk (initialize with 0x5E or "^"), also wipe
 													// the i nodes

@@ -33,6 +33,7 @@
 #include "semaphore.h"
 #include "window.h"
 #include "memory.h"
+#include "ufs.h"
 
 using namespace std;
 semaphore sema_screen(1, (char *)"Screen Print");	// creates semaphores
@@ -45,6 +46,7 @@ semaphore sema_memory(1, (char *)"memory");
 scheduler sched; //creates scheduler
 ipc IPC; // creates ipc
 mem_mgr Mem_Mgr(1,1); // creates mem manager - size, initial value - dont do anything right now
+ufs superuser("superuser", 16, 128, '^');
 
 //------------------------------------------------------------------------------
 //------------------------------MAIN--------------------------------------------
