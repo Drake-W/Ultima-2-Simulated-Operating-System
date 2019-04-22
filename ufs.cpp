@@ -80,7 +80,7 @@ int ufs::Read_Char(int T_id, char* file_name, char *ch) 	// read a char from fil
 	while ((temp->owner_task_id != T_id) || (temp->filename != file_name)){ // get us to the right node
 		temp = temp->next;
 	}
-	fstream filef("filef.txt", ios::out);
+	fstream filef("filef.txt", ios::in);
 	filef.seekp(temp->currentlocation);
 	filef >> ch;
 	temp->currentlocation--;
@@ -195,6 +195,12 @@ void ufs::Dir(int Task_id, WINDOW * win)						// overloaded method. only show th
 }
 void ufs::dump( WINDOW * win)							// dump the ufs inodes as well as the ufs data blocks
 {
-	
+	/*
+	fstream filef("filef.txt", ios::in);
+	filef.seekp(temp->currentlocation);
+	filef >> ch;
+	temp->currentlocation--;
+	filef.close();
+	*/
 }
 	
