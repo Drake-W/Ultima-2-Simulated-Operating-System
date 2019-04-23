@@ -274,11 +274,11 @@ void *ui_loop(void *arguments)
 				
 				int taskn = 1;
 				write_window(logwin, " line 271\n" );
-				superuser.Open(taskn,(char*)"uifile",(char*)"w", logwin);
+				superuser.Open(taskn, tcb->thread_no,(char*)"uifile",(char*)"w", logwin);
 					//file open
 				
 				write_window(logwin, " line 275\n" );
-				superuser.Write_Char(taskn, (char*)"uifile", (char*)"x");
+				superuser.Write_Char(tcb->thread_no, (char*)"uifile", (char*)"x");
 				
 				write_window(logwin, " line 278\n" );
 				
@@ -286,18 +286,36 @@ void *ui_loop(void *arguments)
 				char y;
 				
 				write_window(logwin, " line 283\n" );
-				superuser.Read_Char(taskn, (char*)"uifile", &y);
+				//
 				
 				sprintf(buff, " read: %c\n", y);
 				int perm[4] = { 1, 1, 1, 1 };
 				write_window(logwin, " line 288\n" );
-				superuser.Change_Permission(taskn, (char*)"uifile", perm);
-				superuser.Change_Permission(++taskn, (char*)"uifile", perm);
-				superuser.Change_Permission(++taskn, (char*)"uifile", perm);
+				//superuser.Change_Permission(taskn, (char*)"uifile", perm);
+				//superuser.Change_Permission(++taskn, (char*)"uifile", perm);
+				//superuser.Change_Permission(++taskn, (char*)"uifile", perm);
 				
 				write_window(logwin, " line 291\n");
 				write_window(logwin, buff);
 				
+				break;
+			}
+			case 'r':
+			{
+				//i_node node;
+				
+			    write_window(conwin, "r \n Ultima # ");
+				/*node = 
+				sprintf(buff, " size = %d \n", node.size);
+				write_window(logwin, buff);*/
+				//superuser.Read_inode(1);
+				int per[4] = {1, 1, 0, 0};
+				
+				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, per, tcb->logwin);
+				write_window(logwin, " LINE 315\n");
+				char v;
+				superuser.Read_Char(tcb->thread_no, (char*)"uifile", &v);
+				write_window(logwin, " LINE 318\n ");
 				break;
 			}
 			case 'h':					// HELP and mem usage

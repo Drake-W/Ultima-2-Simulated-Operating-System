@@ -43,7 +43,8 @@ semaphore sema_t3mail(1, (char *)"t3mail");
 semaphore sema_t4mail(1, (char *)"t4mail");	
 semaphore sema_ptable(1, (char *)"ptable");	
 semaphore sema_memory(1, (char *)"memory");
-semaphore sema_files(1, (char *)"Filesystem");
+semaphore sema_filef(1, (char *)"Filesystem");
+semaphore sema_inodef(1, (char*)"iNode");
 scheduler sched; //creates scheduler
 ipc IPC; // creates ipc
 mem_mgr Mem_Mgr(1,1); // creates mem manager - size, initial value - dont do anything right now
