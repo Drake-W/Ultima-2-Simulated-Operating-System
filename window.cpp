@@ -127,7 +127,7 @@ void *perform_simple_output(void *arguments)
 				write_window(Win, buff);
 				int permission[4] = {1,1,0,0};
 				// sema_files.down();
-				superuser.Create_file(tcb->thread_no, (char*)"tfile", 120, permission, tcb->logwin);
+				superuser.Create_file(tcb->thread_no, (char*)"tfile", 120, permission);
 				// sema_files.up();
 			}
 			
@@ -268,38 +268,87 @@ void *ui_loop(void *arguments)
 				//create file, read file, dumps, testcase
 				write_window(conwin, "f \n Ultima # ");
 				
-				write_window(logwin, " line 268\n" );
+				write_window(logwin, " calling Dir();\n" );
 				superuser.Dir(memwin);
 				
+				cin.get();
+					
+				write_window(logwin, " calling Create_File(uifile);\n" );
+				int per[4] = {1, 1, 0, 0};
+				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, per);
 				
-				int taskn = 1;
-				write_window(logwin, " line 271\n" );
-				superuser.Open(taskn, tcb->thread_no,(char*)"uifile",(char*)"w", logwin);
-					//file open
+				cin.get();
+					
+				write_window(logwin, " calling open(uifile)\n" );
+				if (superuser.Open(tcb->thread_no, tcb->thread_no,(char*)"uifile",(char*)"w"))
+				{
+					write_window(logwin, " open success\n" );
+				}else{
+					write_window(logwin, " open fail\n" );
+				}
 				
-				write_window(logwin, " line 275\n" );
+				cin.get();
+					
+				write_window(logwin, " calling write_char(uifile, x)\n" );
 				superuser.Write_Char(tcb->thread_no, (char*)"uifile", (char*)"x");
 				
-				write_window(logwin, " line 278\n" );
+				cin.get();
+					
+				write_window(logwin, " calling Dir();\n" );
+				superuser.Dir(memwin);
 				
-				superuser.dump(messwin);
-				char y;
-				
-				write_window(logwin, " line 283\n" );
-				//
-				
-				sprintf(buff, " read: %c\n", y);
+				cin.get();
+					
 				int perm[4] = { 1, 1, 1, 1 };
-				write_window(logwin, " line 288\n" );
-				//superuser.Change_Permission(taskn, (char*)"uifile", perm);
-				//superuser.Change_Permission(++taskn, (char*)"uifile", perm);
-				//superuser.Change_Permission(++taskn, (char*)"uifile", perm);
+				write_window(logwin, " calling change permissions(1,1,1,1) uifile\n" );
+				superuser.Change_Permission(tcb->thread_no, (char*)"uifile", perm);
 				
-				write_window(logwin, " line 291\n");
-				write_window(logwin, buff);
+				cin.get();
+					
+				write_window(logwin, " calling Dir(task id);\n" );
+				superuser.Dir(tcb->thread_no,memwin);
+				
+				cin.get();
+					
+				write_window(logwin, " calling dump\n" );
+				superuser.dump(memwin);
+				
+				cin.get();
+					
+				write_window(logwin, " calling read\n" );
+				char v;
+				superuser.Read_Char(tcb->thread_no, (char*)"uifile", &v);
+				
+				cin.get();
+					
+				char buffread[256];
+				sprintf(buff, " read in from uifile = %c \n", v);
+				write_window(logwin, buff );
+				
+				cin.get();
+				
+				write_window(logwin, " calling delete(uifile)\n" );
+				superuser.Del_file(tcb->thread_no, (char*)"uifile");
+				
+				cin.get();
+				
+				write_window(logwin, " calling Dir();\n" );
+				superuser.Dir(memwin);
+					
+				cin.get();
+				
+				write_window(logwin, " calling dump\n" );
+				superuser.dump(memwin);
+				
+				cin.get();
+				
+				cin.get();
+				
+				write_window(logwin, " end testing\n" );
 				
 				break;
 			}
+			
 			case 'r':
 			{
 				//i_node node;
@@ -311,7 +360,7 @@ void *ui_loop(void *arguments)
 				//superuser.Read_inode(1);
 				int per[4] = {1, 1, 0, 0};
 				
-				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, per, tcb->logwin);
+				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, per);
 				write_window(logwin, " LINE 315\n");
 				char v;
 				superuser.Read_Char(tcb->thread_no, (char*)"uifile", &v);
