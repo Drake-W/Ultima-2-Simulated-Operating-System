@@ -25,9 +25,9 @@ extern semaphore sema_inodef;
 //------------------------------------------------------------------------------
 
 ufs::ufs(char* name, int noBlocks, int blockSize, char init_char) // only used by superuser (you) to create the filesystem, 
-{																		// format the virtual disk (initialize with 0x5E or "^"), also wipe
+{																	// format the virtual disk (initialize with 0x5E or "^"), also wipe
 	sema_filef.down();
-	fstream filef("filef.txt", ios::out);
+	fstream filef("filef.txt", ios::out); // open the file system and overwrite all data
 	filef.seekp(0);
 	int size = blockSize*noBlocks;
 	for (int i = 0; i < size; i++)
@@ -36,18 +36,18 @@ ufs::ufs(char* name, int noBlocks, int blockSize, char init_char) // only used b
 	sema_filef.up();
 	
 	sema_inodef.down();
-	fstream inodef("inodef.txt", ios::out);
+	fstream inodef("inodef.txt", ios::out); // opens and closes inode data deleting it
 	inodef.close();
 	sema_inodef.up();
 	
 	fs_name = name;										
-	fs_number_of_blocks = noBlocks;
+	fs_number_of_blocks = noBlocks; // sets system specs
 	fs_block_size = blockSize;
 	initialization_char = init_char;
 }
 													
 void ufs::format()									// format the current file system
-{
+{										 			// resets everything similar to the constructor
 	sema_filef.down();
 	fstream filef("filef.txt", ios::out);
 	filef.seekp(0);
@@ -67,7 +67,7 @@ void ufs::format()									// format the current file system
 //File operations
 //------------------------------------------------------------------------------
 
-int ufs::Open(int T_id, int callingtask, char* filenm, char* mode, WINDOW * Win)		//file handle must be valid and belong to t-id or file name should be
+int ufs::Open(int T_id, int callingtask, char* filenm, char* mode)		//file handle must be valid and belong to t-id or file name should be
 {	
 													//set for others. mode = R or W returns a unique integer file_id or -1
 													//for an error. an error could be no such file name is created in teh system
@@ -80,7 +80,7 @@ int ufs::Open(int T_id, int callingtask, char* filenm, char* mode, WINDOW * Win)
 		owner = FALSE;
 	}
 	i_node temp;								
-	for(int i = 0; i < 16; i++){
+	for(int i = 0; i < 16; i++){ // if we have permission at all return 1, if not return -1
 		temp = Read_inode(i);
 		if((temp.owner_task_id == T_id) && (strcmp (temp.filename,filenm) == 0)){
 			if(owner){
@@ -105,18 +105,18 @@ int ufs::Open(int T_id, int callingtask, char* filenm, char* mode, WINDOW * Win)
 }
 
 int ufs::Close(int T_id, int file_id)						// close the file, returns a -1 if an error occurs
-{
-	return 1;
+{																					
+	return 1; //does nothing for now
 }
 int ufs::Read_Char(int T_id, char* file_name, char *ch) 	// read a char from file, return -1 if EOF keep track of the current location
 {	
 	sema_filef.down();
 	i_node temp;								
-	for(int i = 0; i < 16; i++){
+	for(int i = 0; i < 16; i++){ // loops through nodes
 		temp = Read_inode(i);
-		if((temp.owner_task_id == T_id) && (strcmp (temp.filename,file_name) == 0)){
+		if((temp.owner_task_id == T_id) && (strcmp (temp.filename,file_name) == 0)){ // finds node we want
 			fstream filef("filef.txt", ios::in | ios::out);
-			filef.seekp(temp.starting_block*128);
+			filef.seekp(temp.starting_block*128); // reads from start of the file
 			filef.get(*ch);
 			sema_filef.up();
 			return 1;
@@ -130,11 +130,11 @@ int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to th
 {
 	sema_filef.down();
 	i_node temp;								
-	for(int i = 0; i < 16; i++){
+	for(int i = 0; i < 16; i++){ // loops through all nodes
 		temp = Read_inode(i);
-		if((temp.owner_task_id == T_id) && (strcmp (temp.filename,file_name) == 0)){
+		if((temp.owner_task_id == T_id) && (strcmp (temp.filename,file_name) == 0)){ // finds the node we want
 			fstream filef("filef.txt", ios::in | ios::out);
-			filef.seekp(temp.starting_block*128);
+			filef.seekp(temp.starting_block*128); // writes to the start of the file
 			filef.put(*ch);
 			sema_filef.up();
 			return 1;
@@ -149,9 +149,9 @@ int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to th
 //Directory operations
 //------------------------------------------------------------------------------
 
-int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4], WINDOW * Win)
+int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 {	
-	//load up a new node
+	//load up a new node with information we need and then prints to the node file
 	int count = 0;
 	int j=0;
 	i_node * temp = new i_node;
@@ -161,7 +161,7 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4], W
 	
 	temp->size = file_size;
 	
-	for(int i = 0; i < 4; i++){
+	for(int i = 0; i < 4; i++){ // sets permissions
 		temp->permission[i] = permission[i];
 	}
 	
@@ -170,7 +170,7 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4], W
 		reqblocks++;
 	}
 	
-	for(int i = 0; i <16; i++){ // hope this works
+	for(int i = 0; i <16; i++){ // first fit to find enoutgh space for the size we need
 		count = 0;
 		while(count < reqblocks){
 			if(fsystem[i+j] == 0){
@@ -188,12 +188,12 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4], W
 		}
 	}
 	
-	temp->blocks[0] = temp->starting_block;
-	for (int i = 1; i < reqblocks; i++){
+	temp->blocks[0] = temp->starting_block; // sets starting blcok
+	for (int i = 1; i < reqblocks; i++){   // sets additional blocks
 		temp->blocks[i] = temp->starting_block + i;
 	}
 	
-	temp->currentlocation = temp->starting_block * 128;
+	temp->currentlocation = temp->starting_block * 128; // sets current location to the start of the block
 	Write_Node(T_id, temp);	
 	
 }
@@ -203,17 +203,17 @@ int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, d
 	sema_filef.down();
 	i_node temp;	
 		char x = '$';
-	for(int i = 0; i < 16; i++){
+	for(int i = 0; i < 16; i++){ // loops all nodes 
 		temp = Read_inode(i);
-		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename,file_name) == 0)){
+		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename,file_name) == 0)){ // finds the node we want
 			// delete block file stuff here 	 write $$'s
 			fstream filef("filef.txt", ios::in | ios::out);
 			filef.seekp(temp.starting_block  * 128);
-			for (int q = 0; q < temp.size; q++)
+			for (int q = 0; q < temp.size; q++) // overwrites data in the file for the node that we have
 				filef.put(x);
 			filef.close();
 			
-			
+			//clears all node info
 			sprintf(temp.filename, "");
 			temp.owner_task_id = 0;
 			temp.size = 0;
@@ -226,7 +226,7 @@ int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, d
 			//
 			// fsystem delete node [16] blocks
 			//
-			Write_Node(i, &temp);
+			Write_Node(i, &temp); // put node back into the file
 			sema_filef.up();
 			return 1;
 		}
@@ -235,18 +235,16 @@ int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, d
     return -1;
 }
 											
-int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4], WINDOW * win)	// rwrw only the files owner can change the permission on the file
+int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4])	// rwrw only the files owner can change the permission on the file
 {
 	i_node temp;								
-	for(int i = 0; i < 16; i++){
+	for(int i = 0; i < 16; i++){ // loop all nodes
 		temp = Read_inode(i);
-		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename,file_name) == 0)){
-			// delete block file stuff here 	 write $$'s
-		
+		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename,file_name) == 0)){ // find the node we want
 			for(int j = 0; j < 4; j++){
-				temp.permission[j] = new_permission[j];
+				temp.permission[j] = new_permission[j]; // change permissions on the node
 			}
-			Write_Node(i, &temp);
+			Write_Node(i, &temp); // opverwrite the data in the node file
 			return 1;
 		}
 	}
@@ -256,13 +254,14 @@ int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4], 
 void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme and permissions
 { 
 	char buff[256];
-	sprintf(buff, " file name\towner id\tpermissions rwrw\n");
+	sprintf(buff, " file name\towner id Start Block\tSize\tpermissions rwrw blocks\n");
 	write_window(win, buff);
 	i_node temp;
 	for(int i = 0; i < 16; i++){
 		temp = Read_inode(i);
 		if (temp.owner_task_id > 0){
-			sprintf(buff, " %s %d %d %d %d %d %d %d %d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size, temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
+			sprintf(buff, " %s\t%d\t%d\t%d\t%d%d%d%d\t%d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size,
+					temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
 			write_window(win, buff);
 		}
 	}
@@ -271,35 +270,38 @@ void ufs::Dir( WINDOW * win)								// show the directory, everyones file anme a
 void ufs::Dir(int Task_id, WINDOW * win)						// overloaded method. only show the file belonging to T-id
 {
 	char buff[256];
-	sprintf(buff, " file name\towner id\tpermissions rwrw\n");
+	sprintf(buff, " file name\towner id Start Block\tSize\tpermissions rwrw blocks\n");
 	write_window(win, buff);
 	i_node temp;
 	for(int i = 0; i < 16; i++){
 		temp = Read_inode(i);
 		if (temp.owner_task_id == Task_id){
-			sprintf(buff, " %s %d %d %d %d %d %d %d %d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size, temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
+			sprintf(buff, " %s\t%d\t%d\t%d\t%d%d%d%d\t%d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size,
+					temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
 			write_window(win, buff);
 		}
 	}
 }
-void ufs::dump( WINDOW * win)							// dump the ufs inodes as well as the ufs data blocks
+void ufs::dump( WINDOW * win)							// dump all of the data in the file system
 {
 	char ch;
 	char buff[9001];
+	write_window(win, " ");
 	fstream filef("filef.txt", ios::in);
 	filef.seekp(0);
 	for (int i = 0; i < 2048; i++){
-		filef >> buff[i];
-		sprintf(buff, "%c", ch);
+		filef.seekp(i);
+		filef.get(ch);
+		buff[i] = ch;
+		
 	}
-	//sprintf(buff, "\n");
 	write_window(win, buff);
-	//write_window(win, " printed message");
+	write_window(win, "\n");
 	filef.close();
 	
 }
 
-ufs::i_node ufs::Write_Node(int index, i_node * node){
+ufs::i_node ufs::Write_Node(int index, i_node * node){ // writes a node into the node file 
 	sema_inodef.down();
 	fstream inodef("inodef.txt", ios::in | ios::out);
 	
@@ -313,10 +315,9 @@ ufs::i_node ufs::Write_Node(int index, i_node * node){
 	
 	inodef.close();
 	sema_inodef.up();
-	//return node; dont need to return a node in the write	
 }
-
-ufs::i_node ufs::Read_inode(int index){
+ 
+ufs::i_node ufs::Read_inode(int index){ //reads a node from the node file into a node and then returns that node
 	sema_inodef.up();
 	fstream inodef("inodef.txt", ios::in | ios::out);
 	char buff[256];
@@ -330,9 +331,7 @@ ufs::i_node ufs::Read_inode(int index){
 	inodef.read((char*)&temp.size, 4);
 	inodef.read((char*)&temp.permission, 4);
 	inodef.read((char*)&temp.blocks, 4);
-	/*
-	sprintf(buff, " %s %d %d %d %d %d %d %d %d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size, temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
-	write_window(Win, buff);*/
+
 
 	inodef.close();
 	sema_inodef.down();
