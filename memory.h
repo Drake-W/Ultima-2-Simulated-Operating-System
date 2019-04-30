@@ -59,7 +59,7 @@ class mem_mgr{
 	int Mem_Read(int memory_handle, char *ch); // read a character from current location in memory and bring it back in ch, return a -1 if at end of bounds, keep track of the current location or the location next char to be read. 
 	int Mem_Write(int memory_handle, char ch); // write a character to the current location in memory, return a -1 if at end of bounds. 
 											   // overloaded multi-byte read and write
-	int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text); 
+	int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text, WINDOW * win); 
 	int Mem_Write(int memory_handle, int offset_from_beg, int text_size, char *text);
 	int First_Fit(int size);// given a desired size will return the first node/link handle that can provide enough space. 
 	

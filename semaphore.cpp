@@ -41,8 +41,6 @@ void semaphore::down(){ 						// Lock resource
 				tcb = sched.process_table.Dequeue();
 				sched.process_table.Enqueue(tcb); //shuffle queue
 			}
-			
-			sched.yield();	
 		}
 		
 } // end of down		

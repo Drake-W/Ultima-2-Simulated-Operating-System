@@ -220,23 +220,28 @@ int mem_mgr::Mem_Write(int memory_handle, char ch){	// write a character to the 
 			
 // overloaded multi-byte read and write
 //****************************not currently functioning-causes seg fault******************************
-int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text){
+int mem_mgr::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char *text, WINDOW * win){
 	sema_memory.down();
 	int cl = 0; //current location for offset
 	MemNode* temp = this->head;
-	
+	write_window(win, " LINE 227 \n");
 	while(temp){
 		if (temp->handle == memory_handle){
+			write_window(win, " LINE 230 \n");
 			cl = temp->base + offset_from_beg;
+			write_window(win, " LINE 232 \n");
 			
 			for (int i = 0; i < text_size; i++){
-				text[i] = Mem_Core[cl+i];
+				// This portion seg faults
 			}
+			
+			write_window(win, " LINE 236 \n");
 			sema_memory.up();
 		return 1;
 
 		}
 		else{
+			write_window(win, " LINE 242 \n");
 			temp = temp->next;
 		}
 	}

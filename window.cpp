@@ -107,10 +107,7 @@ void *perform_simple_output(void *arguments)
 		while(tcb->state == 2) { // running
 			if(yield_quantum == 0){ // updates process table when thread gets cpu time
 				sched.dump(1, pdumpwin);
-				sema_t1mail.dump(1, sdumpwin);
-				sema_t2mail.dump(1, sdumpwin);
-				sema_t3mail.dump(1, sdumpwin);
-				sema_t4mail.dump(1, sdumpwin);
+				sema_screen.dump(1, sdumpwin);
 			}
 			
 			if (CPU_Quantum == 0) { // First thing a task does is send messages
@@ -137,7 +134,7 @@ void *perform_simple_output(void *arguments)
 				superuser.Create_file(tcb->thread_no, (char*)"tfile", 120, permission);
 				// sema_files.up();
 			}
-			
+			/*
 			if ((CPU_Quantum == 0) && (thread_no == 1)) {
 				sema_deadlock.down();
 			}
@@ -153,7 +150,7 @@ void *perform_simple_output(void *arguments)
 			if ((CPU_Quantum == 4000) && (thread_no == 2)) {
 				sema_deadlock.up();
 			}
-			
+			*/
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
 				
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
@@ -243,9 +240,13 @@ void *ui_loop(void *arguments)
 				refresh(); 			// Clear the entire screen (in case it is corrupted)
 				wclear(conwin); 	// Clear the Console window
 				sema_screen.up();
-					
+				
 				Mem_Mgr.Mem_Coalesce(); 
 				
+				write_window(logwin, " Press any key to continue...\n");
+				cin.get();
+					
+			
 				write_window(conwin, 1, 1, "Ultima # ");
 				break;
 			case 'd':
@@ -269,9 +270,7 @@ void *ui_loop(void *arguments)
 				sema_ptable.dump(1, sdumpwin);
 					*/
 				//core dump	
-				Mem_Mgr.Core_Dump(memwin);	
-				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
-				write_window(logwin, buff);
+				
 					
 				// overloaded read does not work
 				/*	
@@ -380,7 +379,7 @@ void *ui_loop(void *arguments)
 				
 				display_help(conwin);
 				
-				Mem_Mgr.Mem_Usage(memwin);
+				
 				
 				break;
 			case 'g':
@@ -418,9 +417,38 @@ void *ui_loop(void *arguments)
 				write_window(messwin, buff);
 				
 				
-				Mem_Mgr.Mem_Write(tcb->memhandle, 9, textsize, text);
+				
 					 
 				break;
+			case 'm':
+				Mem_Mgr.Core_Dump(memwin);	
+				write_window(logwin, " Calling Core_Dump()\n");
+				cin.get();
+				
+				write_window(logwin, " Printing memory data: \n");
+				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
+				write_window(logwin, buff);
+				
+				
+				cin.get();
+				
+				
+				write_window(logwin, " Calling Mem_Usage()\n");
+				Mem_Mgr.Mem_Usage(memwin);
+				
+				cin.get();
+				
+				write_window(logwin, " Calling Overloaded Mem_Write\n");
+				Mem_Mgr.Mem_Write(tcb->memhandle, 9, textsize, text);
+				
+				cin.get();
+				
+				write_window(logwin, " Another call to Core_Dump()\n");
+				Mem_Mgr.Core_Dump(memwin);
+							
+				write_window(logwin, " Press any key to continue...\n");
+				cin.get();
+				
 			case ERR:	// If wgetch() return ERR, that means no keys were pressed
 				if (tcb->kill_signal == 1){ // set to be killed
 					write_window(logwin, " UI window dying...\n");
