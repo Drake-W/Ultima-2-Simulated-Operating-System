@@ -8,8 +8,8 @@
 |         Class: 	C435 - Operating Systems
 |    Instructor: 	Dr. Hakimzadeh
 |  Date Created: 	4/12/2019
-|  Last Updated:	4/08/2019
-|      Due Date: 	4/08/2019
+|  Last Updated:	4/22/2019
+|      Due Date: 	4/22/2019
 |==================================================================================|
 |  Description: This is the header file which defines the class ufs.
 *==================================================================================*/
@@ -90,7 +90,7 @@ class ufs{
 	int Create_file(int T_id, char* filenm, int file_size, int permission[4]);
 	int Del_file(int Task_id,char* file_name);		// check the files ownership, delete the content of the file from datablocks
 											// by writing $'s in it, then delete the file from the inode table
-	int Change_Permission(int Task_id,char* file_name,int new_permission[4]);	// rwrw only the files owner can change the permission on the file
+	int Change_Permission(int Task_id,char* file_name,int new_permission[4], WINDOW * Win);	// rwrw only the files owner can change the permission on the file
 	
 	void Dir( WINDOW * win);								// show the directory, everyones file anme and permissions
 	void Dir(int Task_id, WINDOW * win);						// overloaded method. only show the file belonging to T-id

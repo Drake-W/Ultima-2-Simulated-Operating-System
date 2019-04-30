@@ -152,6 +152,7 @@ int ufs::Write_Char(int T_id, char* file_name, char* ch) 	// write a  char to th
 int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 {	
 	//load up a new node with information we need and then prints to the node file
+	
 	int count = 0;
 	int j=0;
 	i_node * temp = new i_node;
@@ -170,7 +171,7 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 		reqblocks++;
 	}
 	
-	for(int i = 0; i <16; i++){ // first fit to find enoutgh space for the size we need
+	for(int i = 0; i <16; i++){ // first fit to find enough space for the size we need
 		count = 0;
 		while(count < reqblocks){
 			if(fsystem[i+j] == 0){
@@ -195,6 +196,8 @@ int ufs::Create_file(int T_id, char* filenm, int file_size, int permission[4])
 	
 	temp->currentlocation = temp->starting_block * 128; // sets current location to the start of the block
 	Write_Node(T_id, temp);	
+	
+	
 	
 }
 int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, delete the content of the file from datablocks
@@ -235,19 +238,32 @@ int ufs::Del_file(int Task_id, char* file_name)		// check the files ownership, d
     return -1;
 }
 											
-int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4])	// rwrw only the files owner can change the permission on the file
+int ufs::Change_Permission(int Task_id, char* file_name, int new_permission[4], WINDOW * Win)	// rwrw only the files owner can change the permission on the file
 {
-	i_node temp;								
+	i_node temp;
+char buff[256];	
 	for(int i = 0; i < 16; i++){ // loop all nodes
 		temp = Read_inode(i);
-		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename,file_name) == 0)){ // find the node we want
+		if((temp.owner_task_id == Task_id) && (strcmp (temp.filename, file_name) == 0)){ // find the node we want
 			for(int j = 0; j < 4; j++){
 				temp.permission[j] = new_permission[j]; // change permissions on the node
 			}
-			Write_Node(i, &temp); // opverwrite the data in the node file
+				
+			sprintf(buff, " %s\t%d\t%d\t%d\t%d%d%d%d\t%d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size,
+					temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
+			write_window(Win, buff);
+			
+			Write_Node(Task_id, &temp); // overwrite the data in the node file
+			
+			sprintf(buff, " %s\t%d\t%d\t%d\t%d%d%d%d\t%d %d %d %d\n", temp.filename, temp.owner_task_id, temp.starting_block, temp.size,
+					temp.permission[0], temp.permission[1],temp.permission[2], temp.permission[3], temp.blocks[0], temp.blocks[1],temp.blocks[2],temp.blocks[3]);
+			write_window(Win, buff);
+			
+			
 			return 1;
-		}
+			}
 	}
+			
     return -1;
 }
 	
@@ -318,7 +334,7 @@ ufs::i_node ufs::Write_Node(int index, i_node * node){ // writes a node into the
 }
  
 ufs::i_node ufs::Read_inode(int index){ //reads a node from the node file into a node and then returns that node
-	sema_inodef.up();
+	sema_inodef.down();
 	fstream inodef("inodef.txt", ios::in | ios::out);
 	char buff[256];
 	i_node temp;
@@ -334,6 +350,6 @@ ufs::i_node ufs::Read_inode(int index){ //reads a node from the node file into a
 
 
 	inodef.close();
-	sema_inodef.down();
+	sema_inodef.up();
 	return temp;
 }

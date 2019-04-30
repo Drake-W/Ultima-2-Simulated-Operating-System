@@ -64,7 +64,7 @@ class scheduler {
 	scheduler();
 	int task_counter;
 	Queue <TCB*>process_table;
-	int create_task(char* name, WINDOW *win, WINDOW *pdumpwin);  	// Create appropriate data structures and calls coroutine()
+	int create_task(char* name, WINDOW *win, WINDOW *pdumpwin, WINDOW *sdumpwin);  	// Create appropriate data structures and calls coroutine()
 	int create_ui_task(WINDOW *pdumpwin, WINDOW *sdumpwin, WINDOW *conwin, WINDOW *logwin, WINDOW * messwin, WINDOW * memwin);
 	bool destroy_task(int tasknumber);  				// to kill a task (Set its status to DEAD)
 	void yield();  		  											// Strict round robin process switch. 

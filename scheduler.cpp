@@ -78,12 +78,13 @@ void scheduler::garbage_collect() {				// Delete those with  dead status
 	sema_ptable.up();
 } // end of garbage_collect													
 
-int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin){
+int scheduler::create_task(char* name, WINDOW *win, WINDOW *pdumpwin, WINDOW *sdumpwin){
 	int result_code;
 	TCB * tcb = new TCB;
 	this->task_counter++;
 	tcb->thread_win = win;
 	tcb->pdumpwin = pdumpwin;
+	tcb->sdumpwin = sdumpwin;
 	write_window(tcb->thread_win, 13, 1, "Starting Thread.....\n");
 	tcb->thread_no = this->task_counter;
 	tcb->name = name;

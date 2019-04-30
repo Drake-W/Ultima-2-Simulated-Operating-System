@@ -36,6 +36,8 @@
 #include "ufs.h"
 
 using namespace std;
+
+semaphore sema_deadlock(1, (char*)"Deadlock Test");
 semaphore sema_screen(1, (char *)"Screen Print");	// creates semaphores
 semaphore sema_t1mail(1, (char *)"t1mail");	
 semaphore sema_t2mail(1, (char *)"t2mail");	
@@ -98,14 +100,7 @@ int main() {
 
 	WINDOW * Process_Table = create_window(9, 80, 0, 83);
 	write_window(Process_Table, 1, 5, "      PROCESS TABLE DUMP \n -------------------------------------\n");
-	
-//------------------------------------------------------------------------------
-//Creating tasks with create_task passing each a name and task window 
-//------------------------------------------------------------------------------
-	
-	sched.create_task((char*)" Task 1", W1,Process_Table);
-	sched.create_task((char*)" Task 2", W2,Process_Table);
-	sched.create_task((char*)" Task 3", W3,Process_Table);
+
 	
 //-------------------------------------------------------------------------------
 //Creating a semaphore dump window
@@ -113,6 +108,14 @@ int main() {
 
 	WINDOW * Sema_Dump = create_window(16, 80, 9, 83);
 	write_window(Sema_Dump, 1, 5, "        SEMAPHORE DUMP \n -------------------------------------\n");
+		
+//------------------------------------------------------------------------------
+//Creating tasks with create_task passing each a name and task window 
+//------------------------------------------------------------------------------
+	
+	sched.create_task((char*)" Task 1", W1,Process_Table, Sema_Dump);
+	sched.create_task((char*)" Task 2", W2,Process_Table, Sema_Dump);
+	sched.create_task((char*)" Task 3", W3,Process_Table, Sema_Dump);
 	
 //-------------------------------------------------------------------------------
 //Creating a memory dump window

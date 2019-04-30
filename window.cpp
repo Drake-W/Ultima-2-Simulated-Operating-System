@@ -22,6 +22,7 @@
 #include <cstring>
 #include "ufs.h"
 
+extern semaphore sema_deadlock;
 extern semaphore sema_screen;
 extern semaphore sema_files;
 extern semaphore sema_t1mail;	
@@ -89,6 +90,7 @@ void *perform_simple_output(void *arguments)
 	int thread_no = tcb->thread_no;						// Cast arguments in to thread_data
 	WINDOW * Win = tcb->thread_win;
 	WINDOW * pdumpwin = tcb->pdumpwin;
+	WINDOW * sdumpwin = tcb->sdumpwin;
 	int CPU_Quantum =0;
 	int yield_quantum = 0;
 	char buff[256];
@@ -104,11 +106,16 @@ void *perform_simple_output(void *arguments)
 	while (tcb->state != 3){ // not dead
 		while(tcb->state == 2) { // running
 			if(yield_quantum == 0){ // updates process table when thread gets cpu time
-				//sched.dump(1, pdumpwin);
+				sched.dump(1, pdumpwin);
+				sema_t1mail.dump(1, sdumpwin);
+				sema_t2mail.dump(1, sdumpwin);
+				sema_t3mail.dump(1, sdumpwin);
+				sema_t4mail.dump(1, sdumpwin);
 			}
 			
 			if (CPU_Quantum == 0) { // First thing a task does is send messages
 				for (int i = 1 ; i < 4; i++){
+					
 					ipc::Message * message = new ipc::Message; // create message 
 					message->Source_Task_Id = thread_no; // source = this task
 					message->Destination_Task_Id = i; // destination is every task
@@ -131,7 +138,24 @@ void *perform_simple_output(void *arguments)
 				// sema_files.up();
 			}
 			
+			if ((CPU_Quantum == 0) && (thread_no == 1)) {
+				sema_deadlock.down();
+			}
+			
+			if ((CPU_Quantum == 2000) && (thread_no == 2)) {
+				sema_deadlock.down();
+			}
+			
+			if((CPU_Quantum == 3000) && (thread_no == 1)){
+				sema_deadlock.up();
+			}
+			
+			if ((CPU_Quantum == 4000) && (thread_no == 2)) {
+				sema_deadlock.up();
+			}
+			
 			if(tcb->kill_signal !=1){ //for some reason we cant die before printing or get corruption for now
+				
 				sprintf(buff, " Task-%d running #%d\n", thread_no, CPU_Quantum++);
 				write_window(Win, buff);
 				
@@ -140,8 +164,6 @@ void *perform_simple_output(void *arguments)
 					write = '0' + rand()%77;
 					Mem_Mgr.Mem_Write(tcb->memhandle,write); // write to memory once per yield cycle
 				}
-
-				
 			}
 			yield_quantum++;
 			if (tcb->kill_signal == 1){ // set to be killed
@@ -161,6 +183,7 @@ void *perform_simple_output(void *arguments)
 					//sleep(1);
 				}
 			}
+			
 			
 		} // end while
 		Mem_Mgr.Mem_Free(tcb->memhandle);
@@ -239,12 +262,12 @@ void *ui_loop(void *arguments)
 				
 				write_window(sdumpwin, 1, 5, "        SEMAPHORE DUMP \n -------------------------------------\n");
 				sema_screen.dump(1, sdumpwin);
-				sema_t1mail.dump(1, sdumpwin);
+				/*sema_t1mail.dump(1, sdumpwin);
 				sema_t2mail.dump(1, sdumpwin);
 				sema_t3mail.dump(1, sdumpwin);
 				sema_t4mail.dump(1, sdumpwin);
 				sema_ptable.dump(1, sdumpwin);
-					
+					*/
 				//core dump	
 				Mem_Mgr.Core_Dump(memwin);	
 				sprintf(buff, " memory largest: %d smallest: %d left: %d \n", Mem_Mgr.Mem_Largest(), Mem_Mgr.Mem_Smallest(), Mem_Mgr.Mem_Left());
@@ -301,7 +324,7 @@ void *ui_loop(void *arguments)
 					
 				int perm[4] = { 1, 1, 1, 1 };
 				write_window(logwin, " calling change permissions(1,1,1,1) uifile\n" );
-				superuser.Change_Permission(tcb->thread_no, (char*)"uifile", perm);
+				superuser.Change_Permission(tcb->thread_no, (char*)"uifile", perm, logwin);
 				
 				cin.get();
 					
@@ -351,21 +374,7 @@ void *ui_loop(void *arguments)
 			
 			case 'r':
 			{
-				//i_node node;
-				
-			    write_window(conwin, "r \n Ultima # ");
-				/*node = 
-				sprintf(buff, " size = %d \n", node.size);
-				write_window(logwin, buff);*/
-				//superuser.Read_inode(1);
-				int per[4] = {1, 1, 0, 0};
-				
-				superuser.Create_file(tcb->thread_no, (char*)"uifile", 120, per);
-				write_window(logwin, " LINE 315\n");
-				char v;
-				superuser.Read_Char(tcb->thread_no, (char*)"uifile", &v);
-				write_window(logwin, " LINE 318\n ");
-				break;
+				sema_deadlock.down();
 			}
 			case 'h':					// HELP and mem usage
 				

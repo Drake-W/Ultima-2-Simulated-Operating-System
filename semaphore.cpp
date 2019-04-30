@@ -18,9 +18,11 @@
 #include "semaphore.h"
 #include "scheduler.h"
 
+
 extern semaphore sema_screen;
 extern scheduler sched;
 extern scheduler TCB;
+
 
 void semaphore::down(){ 						// Lock resource
 		
@@ -39,8 +41,10 @@ void semaphore::down(){ 						// Lock resource
 				tcb = sched.process_table.Dequeue();
 				sched.process_table.Enqueue(tcb); //shuffle queue
 			}
-		}
 			
+			sched.yield();	
+		}
+		
 } // end of down		
 
 void semaphore::up(){		 										// Release the resource
@@ -59,31 +63,35 @@ void semaphore::up(){		 										// Release the resource
 				sched.process_table.Enqueue(tcb2); //shuffle queue
 			}
 		}
+					
 } // end of up				
 
 void semaphore::dump(int level, WINDOW * win){
 								// giving semaphore a resource name
-
+	
 	char buff[256];
 
-
+	
 	sprintf(buff, " Resource: %s Sema Value: \t%d \n", resource_name.c_str(), sema_value); // Print the resource name of the current semaphore
 	write_window(win, buff);
 	
 	std::string name;
-	if (sema_data.qSize() > 0){
+	if (sched.process_table.qSize() > 0){
 		scheduler::TCB * tcb;
 		
-		for (int i = 0 ; sema_data.qSize(); i++){
-			tcb = sema_data.Dequeue();
+		for (int i = 0 ; i < sched.process_table.qSize(); i++){
+			tcb = sched.process_table.Dequeue();
 			name = tcb->name;
-			sema_data.Enqueue(tcb);
-			sprintf(buff, "%s -> ", name.c_str());
+			sched.process_table.Enqueue(tcb);
+			sprintf(buff, " %s <- ", name.c_str());
 			write_window(win, buff);
 		}
 	} else{
 			write_window(win, " \tSema Queue empty\n");
 	}
+	down();
+	wclear(win);
+	up();
 } // end of dump
 
 semaphore::semaphore(int sema_value, char* sema_name){
