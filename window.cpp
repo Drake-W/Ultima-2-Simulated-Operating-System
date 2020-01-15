@@ -1,5 +1,5 @@
 /*==================================================================================|
-|    Assignment:	Ultima 2.0 Phase 3
+|    Assignment:	Ultima 2.0 Phase 4
 |     File Name:	window.cpp
 |  Dependencies: 	semaphore.h window.h
 |       Authors: 	Drake Wood, James Giegerich

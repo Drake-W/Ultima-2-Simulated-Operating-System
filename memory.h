@@ -1,5 +1,5 @@
 /*==================================================================================|
-|    Assignment:	Ultima 2.0 Phase 3
+|    Assignment:	Ultima 2.0 Phase 4
 |     File Name:	memory.h
 |  Dependencies: 	string window.h
 |       Authors: 	Drake Wood, James Giegerich

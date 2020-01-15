@@ -1,5 +1,5 @@
 /*==================================================================================|
-|    Assignment:	Ultima 2.0 Phase 3
+|    Assignment:	Ultima 2.0 Phase 4
 |     File Name:	queue.h
 |  Dependencies: 	none
 |       Authors: 	Drake Wood, James Giegerich
